@@ -1,0 +1,9 @@
+.git
+.venv
+.workspace
+.runtime
+node_modules
+apps/studio-web/dist
+**/__pycache__
+**/*.py[cod]
+.DS_Store

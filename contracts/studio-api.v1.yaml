@@ -1,0 +1,3099 @@
+openapi: 3.1.0
+info:
+  title: FedOps Agent Studio Local API
+  version: 0.1.0
+  description: >-
+    Versioned contract between studio-web, the Python Studio API, and FedOps Web.
+    Paths marked x-implementation planned are contract targets and must be
+    implemented with contract tests before a product screen can enable them.
+servers:
+  - url: http://localhost:24368
+tags:
+  - name: system
+  - name: auth
+  - name: workspace
+  - name: environments
+  - name: registry
+  - name: federation
+  - name: agent-builder
+  - name: agents
+paths:
+  /api/v1/health:
+    get:
+      tags: [system]
+      operationId: getHealth
+      responses:
+        '200':
+          description: API is ready.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Health'}
+  /api/v1/bootstrap:
+    get:
+      tags: [system]
+      operationId: getBootstrap
+      responses:
+        '200':
+          description: Session, local projects, and available capabilities.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Bootstrap'}
+  /api/v1/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: {type: string}
+                password: {type: string, format: password}
+      responses:
+        '200':
+          description: Authenticated local session.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthSessionResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/auth/session:
+    get:
+      tags: [auth]
+      operationId: getSession
+      responses:
+        '200':
+          description: Current local session or anonymous state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+  /api/v1/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      responses:
+        '200':
+          description: Local session removed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: {const: success}
+  /api/v1/workspaces:
+    get:
+      tags: [workspace]
+      operationId: listWorkspaces
+      responses:
+        '200':
+          description: Local Federated Task projects.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, source]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/LocalProject'}
+                  source: {const: local-runtime}
+        '401': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [workspace]
+      operationId: createWorkspace
+      description: >-
+        Opens an owned FedOps Web Draft using its existing identity, or creates
+        an account-scoped local-first project with a user-provided local project
+        name. Both flows install the immutable default Baseline release bundled
+        and directly served by FedOps Web. Agent Studio never clones or pulls a
+        Git repository while serving this request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              anyOf:
+                - required: [sourceTaskId]
+                  properties:
+                    sourceTaskId: {type: string, minLength: 1}
+                - required: [name]
+                  properties:
+                    name: {type: string, minLength: 1, maxLength: 64}
+              properties:
+                name: {type: [string, 'null'], minLength: 1, maxLength: 64}
+                sourceTaskId: {type: [string, 'null']}
+                sourceModelVersion: {type: [string, 'null']}
+      responses:
+        '202':
+          description: >-
+            The authenticated Baseline download, checksum verification, shared
+            device cache installation, and project copy completed.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/legacy:
+    get:
+      tags: [workspace]
+      operationId: listLegacyWorkspaces
+      description: >-
+        First-level projects left by the former device-wide Workspace. They are
+        never assigned to an account automatically.
+      responses:
+        '200':
+          description: Legacy projects and conflicts for the current account.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LegacyWorkspaceList'}
+        '401': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/legacy/import:
+    post:
+      tags: [workspace]
+      operationId: importLegacyWorkspaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectNames]
+              properties:
+                projectNames:
+                  type: array
+                  minItems: 1
+                  uniqueItems: true
+                  items: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Selected legacy projects moved into the current account Workspace.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LegacyWorkspaceImport'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/account-tasks:
+    get:
+      tags: [registry]
+      operationId: listCurrentAccountTasks
+      description: >-
+        Compatibility projection of the existing FedOps Web account Task API.
+        This is not yet the Global Model Registry API.
+      responses:
+        '200':
+          description: Current account Tasks with stable and runtime IDs separated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, source]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AccountTask'}
+                  source: {const: fedops-web-account-tasks}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/actions:
+    post:
+      tags: [workspace]
+      operationId: startWorkspaceAction
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [validate, local-train, release-readiness, participation-readiness, run-file]
+                environmentId: {type: [string, 'null']}
+                filePath: {type: [string, 'null']}
+                dataPath: {type: [string, 'null']}
+      responses:
+        '202':
+          description: Managed local run started.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/binding:
+    put:
+      tags: [workspace]
+      operationId: linkWorkspaceToWebDraft
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [taskId]
+              properties:
+                taskId: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Local Workspace bound to one owner-managed Web Draft.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskBinding'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/release-candidate:
+    post:
+      tags: [workspace]
+      operationId: submitReleaseCandidate
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '202':
+          description: Background upload of the Initial Model and immutable Release started.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '409': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/release-submission-readiness:
+    get:
+      tags: [workspace]
+      operationId: getReleaseSubmissionReadiness
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: Whether the current Workspace source and exported model still match a successful Release Readiness check.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ready, reason]
+                properties:
+                  ready: {type: boolean}
+                  reason: {type: [string, 'null']}
+        '401': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}:
+    delete:
+      tags: [workspace]
+      operationId: deleteWorkspace
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 64}
+      responses:
+        '200':
+          description: Local project source and environments were deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted, localProjectId, name]
+                properties:
+                  deleted: {const: true}
+                  localProjectId: {type: string}
+                  name: {type: string}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/open-folder:
+    post:
+      tags: [workspace]
+      operationId: openWorkspaceFolder
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: The project directory was opened in the host file manager.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [opened, path, mode]
+                properties:
+                  opened: {const: true}
+                  path: {type: string}
+                  mode: {type: string, enum: [native, host-bridge]}
+        '404': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/validation-data:
+    get:
+      tags: [workspace]
+      operationId: getValidationData
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: Owner-only, separate local validation folder and server dataset inventory. No raw files returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [local, items]
+                properties:
+                  local: {$ref: '#/components/schemas/LocalDataBinding'}
+                  items: {type: array, items: {$ref: '#/components/schemas/ValidationDataset'}}
+                  serverError: {type: string}
+        '403': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [workspace]
+      operationId: uploadValidationData
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consent, relativePath]
+              properties:
+                consent: {type: boolean, const: true}
+                relativePath: {type: string, description: Subdirectory of the dedicated validation folder; empty selects its root.}
+      responses:
+        '200':
+          description: Immutable dataset uploaded to this Task server. Campaign selection and evaluation check are separate.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ValidationDataset'}
+        '403': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/open-validation-folder:
+    post:
+      tags: [workspace]
+      operationId: openValidationFolder
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: Opens the separate account-local validation folder, never the training folder.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LocalDataBinding'}
+        '403': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/data-binding:
+    put:
+      tags: [workspace]
+      operationId: prepareWorkspaceDataBinding
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: >-
+            Account- and Task-scoped local data directory prepared outside the
+            releaseable Workspace source tree.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LocalDataBinding'}
+        '404': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/open-data-folder:
+    post:
+      tags: [workspace]
+      operationId: openWorkspaceDataFolder
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: The Task-local dataset directory was opened in the host file manager.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - {$ref: '#/components/schemas/LocalDataBinding'}
+                  - type: object
+                    required: [opened, mode]
+                    properties:
+                      opened: {const: true}
+                      mode: {type: string, enum: [native, host-bridge]}
+        '404': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/{local_project_id}/task-data/sample:
+    post:
+      tags: [workspace]
+      operationId: buildWorkspaceTaskDataSample
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                index: {type: integer, minimum: 0, default: 0}
+                dataPath:
+                  type: string
+                  maxLength: 512
+                  default: ''
+                  description: >-
+                    Optional file or directory path relative to the Task Data
+                    root. An empty value selects the complete Task Data root.
+      responses:
+        '200':
+          description: >-
+            JSON-safe inference payload produced from the same local-only Task
+            Data directory used by local and federated training.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskDataSample'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/runs:
+    get:
+      tags: [workspace]
+      operationId: listWorkspaceRuns
+      description: Process-local action history for the current Studio runtime session.
+      parameters:
+        - name: local_project_id
+          in: query
+          required: false
+          schema: {type: string}
+      responses:
+        '200':
+          description: Managed Workspace runs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, source]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/Run'}
+                  source: {const: local-runtime-session}
+        '401': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/runs/{run_id}:
+    get:
+      tags: [workspace]
+      operationId: getWorkspaceRun
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Current state and bounded output of a managed Workspace run.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/runs/{run_id}/cancel:
+    post:
+      tags: [workspace]
+      operationId: cancelWorkspaceRun
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Stop requested for an active managed Workspace run.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/environments:
+    get:
+      tags: [environments]
+      operationId: listPythonEnvironments
+      parameters:
+        - {$ref: '#/components/parameters/EnvironmentOwnerType'}
+        - {$ref: '#/components/parameters/EnvironmentOwnerId'}
+      responses:
+        '200':
+          description: Durable uv environment metadata for one owner.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PythonEnvironmentList'}
+        '401': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [environments]
+      operationId: createPythonEnvironment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ownerType, ownerId, name, pythonVersion]
+              properties:
+                ownerType: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+                ownerId: {type: string}
+                name: {type: string, minLength: 1, maxLength: 48}
+                pythonVersion: {type: string, pattern: '^3\\.(10|11|12|13|14)$'}
+                select: {type: boolean, default: true}
+      responses:
+        '201':
+          description: Environment metadata created; sync is a separate action.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PythonEnvironment'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/environments/{environment_id}/select:
+    post:
+      tags: [environments]
+      operationId: selectPythonEnvironment
+      parameters:
+        - {$ref: '#/components/parameters/EnvironmentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnvironmentOwner'}
+      responses:
+        '200':
+          description: Selected environment.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PythonEnvironment'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/v1/environments/requirements:
+    get:
+      tags: [environments]
+      operationId: getTaskRequirements
+      parameters:
+        - {$ref: '#/components/parameters/EnvironmentOwnerType'}
+        - {$ref: '#/components/parameters/EnvironmentOwnerId'}
+      responses:
+        '200':
+          description: Canonical Task dependency authoring contract.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskRequirements'}
+        '422': {$ref: '#/components/responses/Error'}
+    put:
+      tags: [environments]
+      operationId: updateTaskRequirements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ownerType, ownerId, content]
+              properties:
+                ownerType: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+                ownerId: {type: string}
+                content: {type: string, maxLength: 131072}
+      responses:
+        '200':
+          description: requirements.txt saved and environments marked outdated by content identity.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskRequirements'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/environments/{environment_id}:
+    delete:
+      tags: [environments]
+      operationId: deletePythonEnvironment
+      parameters:
+        - {$ref: '#/components/parameters/EnvironmentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnvironmentOwner'}
+      responses:
+        '200':
+          description: Environment directory deleted and remaining metadata returned.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PythonEnvironmentList'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/environments/{environment_id}/sync:
+    post:
+      tags: [environments]
+      operationId: syncPythonEnvironment
+      parameters:
+        - {$ref: '#/components/parameters/EnvironmentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnvironmentOwner'}
+      responses:
+        '202':
+          description: uv sync run started.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/files/tree:
+    get:
+      tags: [workspace]
+      operationId: getWorkspaceFileTree
+      parameters:
+        - name: local_project_id
+          in: query
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Actual file tree scoped to one discovered local project.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceFileTree'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/files/content:
+    get:
+      tags: [workspace]
+      operationId: readWorkspaceFile
+      parameters:
+        - name: local_project_id
+          in: query
+          required: true
+          schema: {type: string}
+        - name: file_path
+          in: query
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: UTF-8 file content from the selected local project.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceFile'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+    put:
+      tags: [workspace]
+      operationId: saveWorkspaceFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [localProjectId, filePath, content]
+              properties:
+                localProjectId: {type: string}
+                filePath: {type: string}
+                content: {type: string}
+      responses:
+        '200':
+          description: Existing file saved inside the selected local project.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceFile'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [workspace]
+      operationId: createWorkspaceFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [localProjectId, filePath]
+              properties:
+                localProjectId: {type: string}
+                filePath: {type: string}
+                content: {type: string, default: ''}
+      responses:
+        '201':
+          description: New UTF-8 file created inside the selected local project.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceFile'}
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [workspace]
+      operationId: deleteWorkspaceFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [localProjectId, filePath]
+              properties:
+                localProjectId: {type: string}
+                filePath: {type: string}
+      responses:
+        '200':
+          description: Existing file deleted inside the selected local project.
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/files/format:
+    post:
+      tags: [workspace]
+      operationId: formatWorkspaceFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [localProjectId, filePath]
+              properties:
+                localProjectId: {type: string}
+                filePath: {type: string}
+      responses:
+        '200':
+          description: Python or JSON file formatted by the Studio Runtime.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WorkspaceFile'}
+        '400': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+  /api/v1/workspaces/terminal/session:
+    post:
+      tags: [workspace]
+      operationId: ensureWorkspaceTerminal
+      responses:
+        '200':
+          description: Local Python Runtime PTY is ready for an authenticated Socket.IO client.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: {const: ready}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks:
+    get:
+      tags: [registry]
+      operationId: listRegistryTasks
+      parameters:
+        - name: view
+          in: query
+          schema: {type: string, enum: [public, all, owned, joined], default: public}
+        - name: q
+          in: query
+          schema: {type: string}
+        - name: model_type
+          in: query
+          schema: {type: string}
+        - name: tag
+          in: query
+          schema: {type: string}
+        - name: page
+          in: query
+          schema: {type: integer, minimum: 1, default: 1}
+      responses:
+        '200':
+          description: Registry, owned, or joined Federated Tasks from FedOps Web.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RegistryTaskList'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/{taskId}/published-release:
+    get:
+      tags: [registry]
+      operationId: getPublishedTaskRelease
+      parameters:
+        - {$ref: '#/components/parameters/TaskId'}
+      responses:
+        '200':
+          description: Published immutable Task Release metadata.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskRelease'}
+        '404': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [registry]
+      operationId: openPublishedTaskReleaseInWorkspace
+      parameters:
+        - {$ref: '#/components/parameters/TaskId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 64
+                  description: Optional local folder-name hint used only when this Task has no Workspace yet.
+      responses:
+        '201':
+          description: Published bundle and model installed, or the existing account-local Workspace for the same taskId reopened.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Run'}
+        '409': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}:
+    get:
+      tags: [registry]
+      operationId: getPublicRegistryTask
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '200':
+          description: Public Federated Task detail.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RegistryTask'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/activity:
+    get:
+      tags: [registry]
+      operationId: getPublicTaskActivity
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '200':
+          description: Current federated run, participants, and metric history.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskActivity'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/hub:
+    get:
+      tags: [registry]
+      operationId: getPublicTaskHub
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '200':
+          description: S3-backed models, files, and usage for a public Task.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskHub'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/join:
+    post:
+      tags: [registry]
+      operationId: requestPublicTaskParticipation
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '201':
+          description: Participation was approved immediately or requested for review.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Participation'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/participation:
+    delete:
+      tags: [registry]
+      operationId: leavePublicTaskParticipation
+      description: Withdraw a pending request or leave after completing at least one FL run in the current approval cycle.
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+      responses:
+        '200':
+          description: Participation access was released and may be requested again later.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Participation'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/runtime/{runtime_key}/activity:
+    get:
+      tags: [registry]
+      operationId: getAuthorizedTaskActivity
+      parameters:
+        - {$ref: '#/components/parameters/RuntimeKey'}
+      responses:
+        '200':
+          description: Authorized federated activity for an owned or joined Task.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskActivity'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/runtime/{runtime_key}/hub:
+    get:
+      tags: [registry]
+      operationId: getAuthorizedTaskHub
+      parameters:
+        - {$ref: '#/components/parameters/RuntimeKey'}
+      responses:
+        '200':
+          description: Authorized Published Release hub with legacy S3 compatibility.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskHub'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/files/{file_id}/preview:
+    get:
+      tags: [registry]
+      operationId: previewPublicTaskFile
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+        - {$ref: '#/components/parameters/FileId'}
+      responses:
+        '200':
+          description: Text preview from the immutable Release snapshot or legacy Task object.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskFilePreview'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/files/{file_id}/download:
+    get:
+      tags: [registry]
+      operationId: downloadPublicTaskFile
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+        - {$ref: '#/components/parameters/FileId'}
+        - {$ref: '#/components/parameters/ArtifactDownload'}
+      responses:
+        '200':
+          description: Studio-local authenticated URL, or the artifact bytes when artifact=true.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DownloadLink'}
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/public/{handle}/{slug}/models/{version_id}/download:
+    get:
+      tags: [registry]
+      operationId: downloadPublicGlobalModel
+      parameters:
+        - {$ref: '#/components/parameters/Handle'}
+        - {$ref: '#/components/parameters/Slug'}
+        - {$ref: '#/components/parameters/VersionId'}
+        - {$ref: '#/components/parameters/ArtifactDownload'}
+      responses:
+        '200':
+          description: Studio-local authenticated URL, or model bytes when artifact=true.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DownloadLink'}
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/runtime/{runtime_key}/files/{file_id}/preview:
+    get:
+      tags: [registry]
+      operationId: previewAuthorizedTaskFile
+      parameters:
+        - {$ref: '#/components/parameters/RuntimeKey'}
+        - {$ref: '#/components/parameters/FileId'}
+      responses:
+        '200':
+          description: Authorized Task file preview.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TaskFilePreview'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/runtime/{runtime_key}/files/{file_id}/download:
+    get:
+      tags: [registry]
+      operationId: downloadAuthorizedTaskFile
+      parameters:
+        - {$ref: '#/components/parameters/RuntimeKey'}
+        - {$ref: '#/components/parameters/FileId'}
+        - {$ref: '#/components/parameters/ArtifactDownload'}
+      responses:
+        '200':
+          description: Studio-local authenticated URL, or artifact bytes when artifact=true.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DownloadLink'}
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/registry/tasks/runtime/{runtime_key}/models/{version_id}/download:
+    get:
+      tags: [registry]
+      operationId: downloadAuthorizedGlobalModel
+      parameters:
+        - {$ref: '#/components/parameters/RuntimeKey'}
+        - {$ref: '#/components/parameters/VersionId'}
+        - {$ref: '#/components/parameters/ArtifactDownload'}
+      responses:
+        '200':
+          description: Studio-local authenticated URL, or model bytes when artifact=true.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/DownloadLink'}
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations:
+    get:
+      tags: [federation]
+      operationId: listFederatedLearningParticipations
+      responses:
+        '200':
+          description: Current account's authorized local Client projections.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipationList'}
+        '401': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}:
+    get:
+      tags: [federation]
+      operationId: getFederatedLearningParticipation
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: Local Client, Published Release, Global Model, and server state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipation'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}/history:
+    get:
+      tags: [federation]
+      operationId: listFederatedLearningParticipationHistory
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '200':
+          description: Device-local Campaign sessions retained for this authorized Workspace.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipationHistoryList'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}/history/{session_id}:
+    get:
+      tags: [federation]
+      operationId: getFederatedLearningParticipationHistory
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+        - name: session_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Saved per-round events for one device-local Campaign session.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipationHistory'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}/preflight:
+    post:
+      tags: [federation]
+      operationId: preflightFederatedLearningParticipation
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FederatedParticipationAction'}
+      responses:
+        '200':
+          description: Participation Readiness and runtime preflight result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedPreflight'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}/start:
+    post:
+      tags: [federation]
+      operationId: startFederatedLearningParticipation
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/FederatedParticipationAction'}
+      responses:
+        '202':
+          description: Account-scoped local FedOps Client started.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipation'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/federated-learning/participations/{local_project_id}/stop:
+    post:
+      tags: [federation]
+      operationId: stopFederatedLearningParticipation
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+      responses:
+        '202':
+          description: Stop requested for this account's local FedOps Client.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FederatedParticipation'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts:
+    get:
+      tags: [agent-builder]
+      operationId: listAgentDrafts
+      responses:
+        '200':
+          description: Account-scoped local Agent drafts.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentDraftList'}
+    post:
+      tags: [agent-builder]
+      operationId: createAgentDraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateAgentDraft'}
+      responses:
+        '201':
+          description: Agent draft created with a stable local agentId.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentDraft'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/model-sources:
+    get:
+      tags: [agent-builder]
+      operationId: listAgentModelSources
+      responses:
+        '200':
+          description: Account-local Federated Task projects eligible for Base LLM or Tool AI use.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentModelSourceList'}
+        '401': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/model-sources/{local_project_id}/versions/{model_version_id}/prepare:
+    post:
+      tags: [agent-builder]
+      operationId: prepareAgentModelVersion
+      parameters:
+        - {$ref: '#/components/parameters/LocalProjectId'}
+        - name: model_version_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Selected Global Model version cached in the account-local Workspace.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentModelSource'}
+        '401': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/registry-model-sources:
+    get:
+      tags: [agent-builder]
+      operationId: listAgentRegistryModelSources
+      responses:
+        '200':
+          description: Published Registry models visible to the account, including participation access state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentRegistryModelSourceList'}
+        '401': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}:
+    get:
+      tags: [agent-builder]
+      operationId: readAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Agent draft.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentDraft'}
+        '404': {$ref: '#/components/responses/Error'}
+    put:
+      tags: [agent-builder]
+      operationId: updateAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UpdateAgentDraft'}
+      responses:
+        '200':
+          description: Updated Agent draft.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentDraft'}
+        '404': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [agent-builder]
+      operationId: deleteAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Draft and its unreferenced local build files were removed.
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/validate:
+    post:
+      tags: [agent-builder]
+      operationId: validateAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Agent composition and exact account-local Workspace identities checked.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentValidation'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/test:
+    post:
+      tags: [agent-builder]
+      operationId: testAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Test the current saved Draft and optional Tool AI without creating a build.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/chat:
+    post:
+      tags: [agent-builder]
+      operationId: chatWithAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Multi-turn local preview using the current saved Draft composition.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/chat/stream:
+    post:
+      tags: [agent-builder]
+      operationId: streamChatWithAgentDraft
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: NDJSON token stream from the current saved Draft composition.
+          content:
+            application/x-ndjson:
+              schema: {$ref: '#/components/schemas/AgentChatStreamEvent'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/llm/prepare:
+    get:
+      tags: [agent-builder]
+      operationId: readAgentDraftLlmPreparation
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Current Draft Base LLM preparation progress.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentLlmPreparation'}
+        '404': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [agent-builder]
+      operationId: prepareAgentDraftLlm
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '202':
+          description: Draft Base LLM preparation queued or already running.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentLlmPreparation'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agent-builder/drafts/{agent_id}/build:
+    post:
+      tags: [agent-builder]
+      operationId: buildAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '201':
+          description: Agent build snapshot created from verified local Workspace code and models.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BuiltAgent'}
+        '409': {$ref: '#/components/responses/Error'}
+        '502': {$ref: '#/components/responses/Error'}
+  /api/v1/agents:
+    get:
+      tags: [agents]
+      operationId: listAgents
+      responses:
+        '200':
+          description: Account-scoped Built Agent packages.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BuiltAgentList'}
+  /api/v1/agents/{agent_id}:
+    get:
+      tags: [agents]
+      operationId: readAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Latest immutable build and serving state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BuiltAgent'}
+        '404': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [agents]
+      operationId: deleteAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Built Agent, serving state, and local build files removed.
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/test:
+    post:
+      tags: [agents]
+      operationId: testAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Local Agent test response and trace.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/chat:
+    post:
+      tags: [agents]
+      operationId: chatWithLocalAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Authenticated Agent Studio playground result from the selected local Base LLM.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/chat/stream:
+    post:
+      tags: [agents]
+      operationId: streamChatWithLocalAgent
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: NDJSON token stream from the latest immutable local Agent build.
+          content:
+            application/x-ndjson:
+              schema: {$ref: '#/components/schemas/AgentChatStreamEvent'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/llm/prepare:
+    get:
+      tags: [agents]
+      operationId: readAgentLlmPreparation
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Current Built Agent Base LLM preparation progress.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentLlmPreparation'}
+        '404': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [agents]
+      operationId: prepareAgentLlm
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '202':
+          description: Built Agent Base LLM preparation queued or already running.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentLlmPreparation'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/serving:
+    get:
+      tags: [agents]
+      operationId: readAgentServing
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Agent serving state without token secret.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServing'}
+    post:
+      tags: [agents]
+      operationId: enableAgentServing
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentServingRequest'}
+      responses:
+        '201':
+          description: Serving enabled on one dedicated account-local port. Plain bearer token is returned only at creation or rotation.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServingCredential'}
+        '409': {$ref: '#/components/responses/Error'}
+    put:
+      tags: [agents]
+      operationId: updateAgentServingPort
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentServingRequest'}
+      responses:
+        '200':
+          description: Dedicated port reassigned without rotating the existing bearer token.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServing'}
+        '409': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [agents]
+      operationId: disableAgentServing
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Serving disabled and existing bearer token revoked.
+  /api/v1/agents/{agent_id}/serving/token:
+    post:
+      tags: [agents]
+      operationId: rotateAgentServingToken
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '201':
+          description: Previous token revoked and replacement returned once.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServingCredential'}
+  /api/v1/agents/{agent_id}/serving/tools/{tool_id}:
+    put:
+      tags: [agents]
+      operationId: configureAgentDirectToolServing
+      description: Explicitly enable or disable the advanced direct invocation API for one Tool AI. Disabled by default.
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+        - name: tool_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentDirectToolServingRequest'}
+      responses:
+        '200':
+          description: Updated Serving API exposure state.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServing'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/serving/data-sources:
+    get:
+      tags: [agents]
+      operationId: listAgentServingDataSources
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Tool-scoped local Task Data bindings. Raw local data is never returned.
+    put:
+      tags: [agents]
+      operationId: upsertAgentServingDataSource
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentServingDataSourceRequest'}
+      responses:
+        '200':
+          description: One Tool AI local Data Source was created or updated.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentServingDataSource'}
+        '409': {$ref: '#/components/responses/Error'}
+  /api/v1/agents/{agent_id}/serving/data-sources/{source_id}:
+    delete:
+      tags: [agents]
+      operationId: deleteAgentServingDataSource
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '200': {description: Data Source registration removed; local files remain untouched.}
+  /api/v1/agents/{agent_id}/serving/data-sources/{source_id}/test:
+    post:
+      tags: [agents]
+      operationId: testAgentServingDataSource
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sampleIndex: {type: [integer, 'null'], minimum: 0}
+      responses:
+        '200':
+          description: Local sample adapter and Tool AI prediction result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentToolPredictionResponse'}
+  /api/v1/agents/{agent_id}/requests:
+    get:
+      tags: [agents]
+      operationId: listAgentRequests
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200':
+          description: Bounded local request and test records.
+  /serve/v1/agents/{agent_id}/health:
+    get:
+      tags: [agents]
+      operationId: servedAgentHealth
+      security: [{AgentBearer: []}]
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200': {description: Built Agent serving health.}
+        '401': {$ref: '#/components/responses/Error'}
+  /serve/v1/agents/{agent_id}/info:
+    get:
+      tags: [agents]
+      operationId: servedAgentInfo
+      security: [{AgentBearer: []}]
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      responses:
+        '200': {description: Portable Agent and model identities.}
+        '401': {$ref: '#/components/responses/Error'}
+  /serve/v1/agents/{agent_id}/chat:
+    post:
+      tags: [agents]
+      operationId: servedAgentChat
+      security: [{AgentBearer: []}]
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Agent chat result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /serve/v1/agents/{agent_id}/tools/{tool_id}/invoke:
+    post:
+      tags: [agents]
+      operationId: servedAgentToolInvoke
+      description: Advanced opt-in Tool AI invocation that bypasses the Base LLM and Agent Harness.
+      security: [{AgentBearer: []}]
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+        - name: tool_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentToolPredictionRequest'}
+      responses:
+        '200':
+          description: Direct Tool AI result without Base LLM generation.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentToolPredictionResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /serve/v1/agents/{agent_id}/tools/{tool_id}/predict:
+    post:
+      tags: [agents]
+      operationId: servedAgentToolPredictCompatibility
+      deprecated: true
+      description: Compatibility alias for the opt-in direct Tool AI invoke route.
+      security: [{AgentBearer: []}]
+      parameters:
+        - {$ref: '#/components/parameters/AgentId'}
+        - name: tool_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentToolPredictionRequest'}
+      responses:
+        '200':
+          description: Direct Tool AI result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentToolPredictionResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /health:
+    get:
+      tags: [agents]
+      operationId: dedicatedServedAgentHealth
+      description: Available only on an enabled Agent's dedicated localhost port.
+      security: [{AgentBearer: []}]
+      responses:
+        '200': {description: Built Agent serving health.}
+        '401': {$ref: '#/components/responses/Error'}
+  /info:
+    get:
+      tags: [agents]
+      operationId: dedicatedServedAgentInfo
+      description: Available only on an enabled Agent's dedicated localhost port.
+      security: [{AgentBearer: []}]
+      responses:
+        '200': {description: Immutable Agent build information.}
+        '401': {$ref: '#/components/responses/Error'}
+  /chat:
+    post:
+      tags: [agents]
+      operationId: dedicatedServedAgentChat
+      description: Available only on an enabled Agent's dedicated localhost port.
+      security: [{AgentBearer: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentChatRequest'}
+      responses:
+        '200':
+          description: Tool AI and Base LLM response from the Agent assigned to this port.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentChatResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /tools/{tool_id}/invoke:
+    post:
+      tags: [agents]
+      operationId: dedicatedServedAgentToolInvoke
+      description: Advanced opt-in Tool AI invocation on an enabled Agent's dedicated port. This bypasses the Base LLM and Agent Harness.
+      security: [{AgentBearer: []}]
+      parameters:
+        - name: tool_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentToolPredictionRequest'}
+      responses:
+        '200':
+          description: Direct Tool AI result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentToolPredictionResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /tools/{tool_id}/predict:
+    post:
+      tags: [agents]
+      operationId: dedicatedServedAgentToolPredictCompatibility
+      deprecated: true
+      description: Compatibility alias for the opt-in direct Tool AI invoke route.
+      security: [{AgentBearer: []}]
+      parameters:
+        - name: tool_id
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AgentToolPredictionRequest'}
+      responses:
+        '200':
+          description: Direct Tool AI result.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AgentToolPredictionResponse'}
+        '401': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    AgentBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque-local-token
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema: {type: string}
+    LocalProjectId:
+      name: local_project_id
+      in: path
+      required: true
+      schema: {type: string}
+    EnvironmentId:
+      name: environment_id
+      in: path
+      required: true
+      schema: {type: string}
+    EnvironmentOwnerType:
+      name: owner_type
+      in: query
+      required: true
+      schema: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+    EnvironmentOwnerId:
+      name: owner_id
+      in: query
+      required: true
+      schema: {type: string}
+    Handle:
+      name: handle
+      in: path
+      required: true
+      schema: {type: string}
+    Slug:
+      name: slug
+      in: path
+      required: true
+      schema: {type: string}
+    RuntimeKey:
+      name: runtime_key
+      in: path
+      required: true
+      schema: {type: string}
+    FileId:
+      name: file_id
+      in: path
+      required: true
+      schema: {type: string}
+    VersionId:
+      name: version_id
+      in: path
+      required: true
+      schema: {type: string}
+    AgentId:
+      name: agent_id
+      in: path
+      required: true
+      schema: {type: string, pattern: '^agent-[a-f0-9]{16}$'}
+    ArtifactDownload:
+      name: artifact
+      in: query
+      required: false
+      description: Return verified bytes instead of a Studio-local download descriptor.
+      schema: {type: boolean, default: false}
+  responses:
+    Error:
+      description: Request failed.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+  schemas:
+    ValidationDataset:
+      type: object
+      required: [dataPath, sha256, fileCount, totalBytes]
+      properties:
+        dataPath: {type: string, description: Task-server directory used by Campaign serverEvaluation.dataPath.}
+        sha256: {type: string}
+        fileCount: {type: integer}
+        totalBytes: {type: integer}
+    Health:
+      type: object
+      required: [status, service, version]
+      properties:
+        status: {const: ok}
+        service: {const: fedops-agent-studio-api}
+        version: {type: string}
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail: {type: string}
+        code: {type: [string, 'null']}
+        requestId: {type: [string, 'null']}
+    Session:
+      type: object
+      required: [authenticated, mode, username, accountKey, handle, displayName, isGuest, isFedOps]
+      properties:
+        authenticated: {type: boolean}
+        mode: {type: string, enum: [anonymous, fedops]}
+        username: {type: [string, 'null']}
+        accountKey:
+          type: [string, 'null']
+          description: Device-local opaque account namespace; never a FedOps user ID.
+        handle: {type: [string, 'null']}
+        displayName: {type: [string, 'null']}
+        isGuest: {type: boolean}
+        isFedOps: {type: boolean}
+    AuthSessionResponse:
+      type: object
+      required: [status, session]
+      properties:
+        status: {const: success}
+        session: {$ref: '#/components/schemas/Session'}
+    RuntimeContract:
+      type: object
+      required: [name, schemaVersion]
+      description: >-
+        Immutable execution contract selected by FedOps Web. Tasks without a
+        stored contract are treated as legacy-v1 and are never upgraded
+        implicitly by Agent Studio.
+      properties:
+        name: {type: string, enum: [legacy-v1, federated-task-v2, federated-task-v3]}
+        schemaVersion: {type: integer, enum: [1, 2, 3]}
+        fedopsVersion: {type: string}
+        sourceRevision: {type: string}
+        baselineVersion: {type: [string, 'null']}
+    TaskBinding:
+      type: object
+      required: [schemaVersion, taskId, runtimeKey, displayName, linkedAt]
+      properties:
+        schemaVersion: {type: integer, const: 1}
+        taskId: {type: string}
+        runtimeKey: {type: string}
+        displayName: {type: string}
+        workspaceRole: {type: string, enum: [owner, admin, participant]}
+        taskCategory: {type: [string, 'null']}
+        dataModality: {type: [string, 'null']}
+        primaryModel:
+          type: [object, 'null']
+          additionalProperties: true
+        ownerHandle: {type: [string, 'null']}
+        slug: {type: [string, 'null']}
+        registryStatus: {type: string}
+        runtimeContract: {$ref: '#/components/schemas/RuntimeContract'}
+        linkedAt: {type: string, format: date-time}
+        releaseId: {type: string}
+        modelVersionId: {type: string}
+        bundleSha256: {type: string}
+    LocalProject:
+      type: object
+      required: [localProjectId, name, path, origin, hasPyproject, hasFedOpsTask, projectEnvironmentReady]
+      properties:
+        localProjectId: {type: string}
+        name: {type: string}
+        path: {type: string}
+        origin: {const: local}
+        hasPyproject: {type: boolean}
+        hasFedOpsTask: {type: boolean}
+        projectEnvironmentReady: {type: boolean}
+        taskBinding:
+          oneOf:
+            - {$ref: '#/components/schemas/TaskBinding'}
+            - {type: 'null'}
+    TaskRelease:
+      type: object
+      required: [releaseId, revision, status, bundleSha256, files, model, readiness]
+      properties:
+        releaseId: {type: string}
+        revision: {type: integer, minimum: 1}
+        status: {type: string, enum: [ready, published, deprecated, rejected]}
+        bundleSha256: {type: string}
+        sourceFingerprint: {type: string}
+        files: {type: array, items: {type: object}}
+        model: {type: object}
+        readiness: {type: object}
+        catalog:
+          type: object
+          additionalProperties: true
+    LegacyWorkspaceProject:
+      type: object
+      required: [name, path, hasPyproject, hasFedOpsTask, conflict]
+      properties:
+        name: {type: string}
+        path: {type: string}
+        hasPyproject: {type: boolean}
+        hasFedOpsTask: {type: boolean}
+        conflict: {type: boolean}
+    LegacyWorkspaceList:
+      type: object
+      required: [items, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/LegacyWorkspaceProject'}
+        source: {const: device-legacy-workspace}
+    LegacyWorkspaceImport:
+      type: object
+      required: [imported, projects]
+      properties:
+        imported: {type: integer, minimum: 1}
+        projects:
+          type: array
+          items: {$ref: '#/components/schemas/LocalProject'}
+    WorkspaceFileTreeNode:
+      type: object
+      required: [name, path, type, readOnly, accessKind]
+      properties:
+        name: {type: string}
+        path: {type: string}
+        type: {type: string, enum: [directory, file]}
+        readOnly: {type: boolean}
+        accessKind: {type: string, enum: [editable, generated, managed]}
+        role: {type: string, nullable: true}
+        children:
+          type: array
+          items: {$ref: '#/components/schemas/WorkspaceFileTreeNode'}
+    WorkspaceFileTree:
+      type: object
+      required: [project, tree]
+      properties:
+        project: {$ref: '#/components/schemas/LocalProject'}
+        tree: {$ref: '#/components/schemas/WorkspaceFileTreeNode'}
+    WorkspaceFile:
+      type: object
+      required: [path, name, content, language, size, modifiedAt, readOnly]
+      properties:
+        path: {type: string}
+        name: {type: string}
+        content: {type: string}
+        language: {type: string}
+        size: {type: integer}
+        modifiedAt: {type: string, format: date-time}
+        readOnly: {type: boolean}
+    LocalDataBinding:
+      type: object
+      required: [localProjectId, containerPath, hostPath, hasEntries, fileCount, totalBytes, fingerprint, source]
+      properties:
+        localProjectId: {type: string}
+        containerPath:
+          type: string
+          description: Runtime-visible path supplied to local training and participation checks.
+        hostPath:
+          type: string
+          description: Host-visible path shown to the local user.
+        hasEntries:
+          type: boolean
+          description: Whether the directory currently contains at least one entry.
+        fileCount: {type: integer, minimum: 0}
+        totalBytes: {type: integer, minimum: 0}
+        fingerprint:
+          type: string
+          description: Stable digest of relative paths, sizes, and modification timestamps.
+        source: {const: task-local-data}
+    TaskDataSample:
+      type: object
+      required: [localProjectId, index, dataPath, payload, metadata, source]
+      properties:
+        localProjectId: {type: string}
+        index: {type: integer, minimum: 0}
+        dataPath:
+          type: string
+          description: Normalized path relative to the Task Data root; empty means the root.
+        payload: {type: object, additionalProperties: true}
+        metadata: {type: object, additionalProperties: true}
+        source: {const: task-data-adapter}
+    EnvironmentOwnerType:
+      type: string
+      enum: [federated-task, agent-build, agent-serve]
+    EnvironmentOwner:
+      type: object
+      required: [ownerType, ownerId]
+      properties:
+        ownerType: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+        ownerId: {type: string}
+    PythonEnvironment:
+      type: object
+      required: [environmentId, ownerType, ownerId, name, pythonVersion, path, selected, status, lockStatus, createdAt]
+      properties:
+        environmentId: {type: string}
+        ownerType: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+        ownerId: {type: string}
+        name: {type: string}
+        pythonVersion: {type: string}
+        path: {type: string}
+        selected: {type: boolean}
+        status: {type: string, enum: [missing, outdated, syncing, ready, error]}
+        lockStatus: {type: string, enum: [missing, outdated, synced]}
+        uvVersion: {type: [string, 'null']}
+        createdAt: {type: string, format: date-time}
+        lastSyncedAt: {type: [string, 'null'], format: date-time}
+        error: {type: [string, 'null']}
+    PythonEnvironmentList:
+      type: object
+      required: [items, ownerType, ownerId, uv, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/PythonEnvironment'}
+        ownerType: {$ref: '#/components/schemas/EnvironmentOwnerType'}
+        ownerId: {type: string}
+        uv:
+          type: object
+          required: [available, version, executable]
+          properties:
+            available: {type: boolean}
+            version: {type: [string, 'null']}
+            executable: {type: [string, 'null']}
+        source: {const: local-runtime-metadata}
+    TaskRequirements:
+      type: object
+      required: [path, mode, editable, content, dependencies, valid, error, sha256]
+      properties:
+        path: {const: requirements.txt}
+        mode: {type: string, enum: [requirements, pyproject, missing]}
+        editable: {type: boolean}
+        content: {type: string}
+        dependencies:
+          type: array
+          items: {type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]*==.+'}
+        valid: {type: boolean}
+        error: {type: [string, 'null']}
+        sha256: {type: [string, 'null']}
+    AccountTask:
+      type: object
+      required: [taskId, displayName]
+      properties:
+        taskId: {type: string}
+        displayName: {type: string}
+        runtimeKey: {type: [string, 'null']}
+        ownerHandle: {type: [string, 'null']}
+        slug: {type: [string, 'null']}
+        registryStatus: {type: string}
+        runtimeContract: {$ref: '#/components/schemas/RuntimeContract'}
+        yamlConfig: {type: [string, 'null']}
+        primaryModel:
+          type: [object, 'null']
+          additionalProperties: true
+    RegistryTaskPermissions:
+      type: object
+      required: [canView, canManage, canDownloadModels, canRequestParticipation, canOpenWorkspace, isOwner, isAdmin, isParticipant]
+      properties:
+        canView: {type: boolean}
+        canManage: {type: boolean}
+        canDownloadModels: {type: boolean}
+        canRequestParticipation: {type: boolean}
+        canOpenWorkspace:
+          type: boolean
+          description: True only for the Task owner, an administrator, or an approved participant.
+        isOwner: {type: boolean}
+        isAdmin: {type: boolean}
+        isParticipant: {type: boolean}
+        participationStatus: {type: [string, 'null']}
+        canLeaveParticipation: {type: boolean}
+        leaveRequiresCompletedRun: {type: boolean}
+        completedParticipationCount: {type: integer, minimum: 0}
+        lastParticipatedAt: {type: [string, 'null'], format: date-time}
+    RegistryMembership:
+      type: [object, 'null']
+      properties:
+        role: {type: string, enum: [owner, admin, participant]}
+        status: {type: string}
+    RegistryTask:
+      type: object
+      required:
+        - registryId
+        - title
+        - summary
+        - description
+        - cardMarkdown
+        - tags
+        - visibility
+        - participationPolicy
+        - status
+        - modelCapability
+        - permissions
+      properties:
+        registryId: {type: string, description: Public handle/slug identity when available.}
+        taskId: {type: [string, 'null'], description: MongoDB identity; only exposed to authorized users.}
+        title: {type: string}
+        displayName: {type: string}
+        taskCategory: {type: [string, 'null']}
+        dataModality: {type: [string, 'null']}
+        primaryModel:
+          type: [object, 'null']
+          additionalProperties: true
+        runtimeKey: {type: [string, 'null'], description: Kubernetes and runtime routing identity.}
+        ownerHandle: {type: [string, 'null']}
+        slug: {type: [string, 'null']}
+        summary: {type: string}
+        description: {type: string}
+        cardMarkdown: {type: string}
+        tags:
+          type: array
+          items: {type: string}
+        visibility: {type: string, enum: [public, private]}
+        participationPolicy: {type: string, enum: [closed, approval_required, open]}
+        status: {type: string}
+        dataType: {type: [string, 'null']}
+        modelType: {type: [string, 'null']}
+        modelCapability:
+          type: string
+          enum: [base-llm, tool-ai]
+          description: Agent composition role inferred from authoritative Task model metadata.
+        strategy: {type: [string, 'null']}
+        numRounds: {type: [string, 'null']}
+        publishedAt: {type: [string, 'null']}
+        registryStatus: {type: string}
+        runtimeContract: {$ref: '#/components/schemas/RuntimeContract'}
+        currentPublishedReleaseId: {type: [string, 'null']}
+        updatedAt: {type: [string, 'null']}
+        membership: {$ref: '#/components/schemas/RegistryMembership'}
+        permissions: {$ref: '#/components/schemas/RegistryTaskPermissions'}
+    RegistryTaskList:
+      type: object
+      required: [items, view, page, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/RegistryTask'}
+        view: {type: string, enum: [public, all, owned, joined]}
+        page: {type: integer}
+        source: {const: fedops-web}
+    TaskMetric:
+      type: object
+      properties:
+        round: {type: [integer, 'null']}
+        modelVersion: {type: [integer, 'null']}
+        loss: {type: [number, 'null']}
+        accuracy: {type: [number, 'null']}
+        roundTimeSeconds: {type: [number, 'null']}
+    TaskActivity:
+      type: object
+      required: [schemaVersion, run, participants, metrics, source]
+      properties:
+        schemaVersion: {type: integer}
+        run:
+          type: object
+          additionalProperties: true
+        participants:
+          type: object
+          additionalProperties: true
+        metrics:
+          type: object
+          required: [latest, history]
+          properties:
+            latest:
+              anyOf:
+                - {$ref: '#/components/schemas/TaskMetric'}
+                - {type: 'null'}
+            history:
+              type: array
+              items: {$ref: '#/components/schemas/TaskMetric'}
+        membership:
+          type: [object, 'null']
+          additionalProperties: true
+        source:
+          type: object
+          additionalProperties: true
+    TaskHub:
+      type: object
+      required: [task, permissions, models, files, usage]
+      properties:
+        task: {type: object, additionalProperties: true}
+        permissions: {$ref: '#/components/schemas/RegistryTaskPermissions'}
+        models:
+          type: array
+          items: {type: object, additionalProperties: true}
+        files:
+          type: array
+          items: {type: object, additionalProperties: true}
+        usage: {type: object, additionalProperties: true}
+    TaskFilePreview:
+      type: object
+      required: [file, language, content, truncated, previewBytes]
+      properties:
+        file: {type: object, additionalProperties: true}
+        language: {type: string}
+        content: {type: string}
+        truncated: {type: boolean}
+        previewBytes: {type: integer}
+    DownloadLink:
+      type: object
+      required: [url, expiresIn]
+      properties:
+        url: {type: string, format: uri}
+        expiresIn: {type: integer}
+    GlobalModel:
+      type: object
+      required: [globalModelId, name, latestVersion, parentTaskId, access]
+      properties:
+        globalModelId: {type: string}
+        name: {type: string}
+        latestVersion: {type: string}
+        parentTaskId: {type: string}
+        parentTaskName: {type: string}
+        access: {type: string, enum: [public, private]}
+        participationStatus: {type: string}
+    Participation:
+      type: object
+      required: [participationId, taskId, status]
+      properties:
+        participationId: {type: string}
+        taskId: {type: string}
+        status:
+          type: string
+          enum: [not-joined, pending-approval, approved, ready, active, paused, left, rejected]
+        runtimeKey: {type: [string, 'null']}
+        localProjectId: {type: [string, 'null']}
+    FederatedParticipationAction:
+      type: object
+      properties:
+        dataPath:
+          type: [string, 'null']
+          description: Container-visible directory inside the signed-in account's .local-data root.
+        environmentId: {type: [string, 'null']}
+    FederatedPreflightCheck:
+      type: object
+      required: [id, label, status, detail]
+      properties:
+        id: {type: string}
+        label: {type: string}
+        status: {type: string, enum: [passed, failed]}
+        detail: {type: string}
+    FederatedServerAvailability:
+      type: object
+      required: [ready, state]
+      properties:
+        ready: {type: boolean}
+        state: {type: string}
+        endpoint: {type: [string, 'null']}
+        observedAt: {type: [string, 'null'], format: date-time}
+    FederatedPreflight:
+      type: object
+      required: [ok, checkedAt, taskId, releaseId, modelVersionId, campaignRunId, sourceFingerprint, dataFingerprint, dataPath, checks]
+      properties:
+        ok: {type: boolean}
+        checkedAt: {type: string, format: date-time}
+        taskId: {type: string}
+        releaseId: {type: string}
+        modelVersionId: {type: string}
+        campaignRunId: {type: [string, 'null']}
+        sourceFingerprint: {type: string}
+        dataFingerprint: {type: string}
+        environmentId: {type: [string, 'null']}
+        dataPath: {type: string}
+        serverAvailability: {$ref: '#/components/schemas/FederatedServerAvailability'}
+        checks:
+          type: array
+          items: {$ref: '#/components/schemas/FederatedPreflightCheck'}
+    FederatedRuntimeEvent:
+      type: object
+      required: [schemaVersion, timestamp, stage]
+      properties:
+        schemaVersion: {type: integer, const: 1}
+        timestamp: {type: string, format: date-time}
+        taskId: {type: [string, 'null']}
+        releaseId: {type: [string, 'null']}
+        clientInstanceId: {type: [string, 'null']}
+        stage: {type: string}
+        round: {type: integer}
+        progress: {type: number}
+        stageProgress:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Progress normalized within the current local Client stage.
+        message: {type: string}
+        metrics: {type: object, additionalProperties: true}
+        epoch: {type: integer, minimum: 1}
+        epochs: {type: integer, minimum: 1}
+        batch: {type: integer, minimum: 1}
+        totalBatches: {type: integer, minimum: 1}
+        step:
+          type: integer
+          minimum: 0
+          description: Optional zero- or one-based local progress step when a Task does not report batches.
+        totalSteps: {type: integer, minimum: 1}
+        sampleCount: {type: integer, minimum: 0}
+        source: {type: string}
+      additionalProperties: true
+    FederatedParticipation:
+      type: object
+      required: [localProjectId, task, release, globalModel, server, participation, workspace, runtime, events, logs, observedAt]
+      properties:
+        localProjectId: {type: string}
+        task:
+          type: object
+          required: [taskId, runtimeKey, title, runtimeContract]
+          properties:
+            taskId: {type: string}
+            runtimeKey: {type: string}
+            title: {type: string}
+            primaryModel: {type: [object, 'null'], additionalProperties: true}
+            runtimeContract: {$ref: '#/components/schemas/RuntimeContract'}
+        release: {type: object, additionalProperties: true}
+        globalModel: {type: object, additionalProperties: true}
+        server: {type: object, additionalProperties: true}
+        campaign: {type: [object, 'null'], additionalProperties: true}
+        participation: {type: object, additionalProperties: true}
+        workspace:
+          type: object
+          required: [ready, participationReadyToStart, serverAvailability, readyToStart]
+          properties:
+            ready: {type: boolean}
+            participationReadyToStart:
+              type: boolean
+              description: True when the local Participation Readiness result still matches the Campaign Run, Release, Workspace source, and Task Data; independent of live server state.
+            serverAvailability: {$ref: '#/components/schemas/FederatedServerAvailability'}
+            readyToStart:
+              type: boolean
+              description: True only when local Participation Readiness is current and the Federated Server is live.
+            releaseUpdateRequired: {type: boolean}
+            binding: {type: [object, 'null'], additionalProperties: true}
+            participationReadiness: {type: [object, 'null'], additionalProperties: true}
+            participationPreflight:
+              anyOf:
+                - {$ref: '#/components/schemas/FederatedPreflight'}
+                - {type: 'null'}
+          additionalProperties: true
+        runtime: {type: object, additionalProperties: true}
+        latestEvent:
+          anyOf:
+            - {$ref: '#/components/schemas/FederatedRuntimeEvent'}
+            - {type: 'null'}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/FederatedRuntimeEvent'}
+        logs: {type: string}
+        observedAt: {type: string, format: date-time}
+        unavailableReason: {type: string}
+    FederatedParticipationSession:
+      type: object
+      required: [sessionId, status, rounds, completedRounds, eventCount]
+      properties:
+        sessionId: {type: string}
+        campaignRunId: {type: [string, 'null']}
+        runId: {type: [string, 'null']}
+        taskId: {type: [string, 'null']}
+        releaseId: {type: [string, 'null']}
+        status: {type: string}
+        baseGlobalModelVersion: {type: [integer, 'null']}
+        targetGlobalModelVersion: {type: [integer, 'null']}
+        campaign: {type: [object, 'null'], additionalProperties: true}
+        rounds:
+          type: array
+          items: {type: integer, minimum: 1}
+        completedRounds: {type: integer, minimum: 0}
+        startedAt: {type: [string, 'null'], format: date-time}
+        endedAt: {type: [string, 'null'], format: date-time}
+        eventCount: {type: integer, minimum: 0}
+    FederatedParticipationHistoryList:
+      type: object
+      required: [items, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/FederatedParticipationSession'}
+        source: {const: account-local-participation-history}
+    FederatedParticipationHistory:
+      type: object
+      required: [session, events]
+      properties:
+        session: {$ref: '#/components/schemas/FederatedParticipationSession'}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/FederatedRuntimeEvent'}
+    FederatedParticipationList:
+      type: object
+      required: [items, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/FederatedParticipationSummary'}
+        source: {const: fedops-web-and-local-runtime}
+    FederatedParticipationSummary:
+      type: object
+      required: [localProjectId, task, workspace, runtime]
+      properties:
+        localProjectId: {type: string}
+        task: {type: object, additionalProperties: true}
+        release: {type: object, additionalProperties: true}
+        globalModel: {type: object, additionalProperties: true}
+        server: {type: object, additionalProperties: true}
+        campaign: {type: [object, 'null'], additionalProperties: true}
+        participation: {type: object, additionalProperties: true}
+        workspace: {type: object, additionalProperties: true}
+        runtime: {type: object, additionalProperties: true}
+        latestEvent:
+          anyOf:
+            - {$ref: '#/components/schemas/FederatedRuntimeEvent'}
+            - {type: 'null'}
+        observedAt: {type: string, format: date-time}
+        unavailableReason: {type: string}
+    HuggingFaceAgentLlm:
+      type: object
+      required: [source, repoId, revision, format, displayName, license, runtimeStatus]
+      properties:
+        source: {const: huggingface}
+        repoId: {type: string}
+        revision: {type: string}
+        fileName: {type: [string, 'null'], description: Exact GGUF filename; null for a Transformers snapshot.}
+        format: {type: string, enum: [transformers, gguf]}
+        displayName: {type: string}
+        license: {type: string}
+        localPath: {type: [string, 'null']}
+        runtimeStatus: {type: string, enum: [not-prepared, preparing, installed, ready, error]}
+    FederatedTaskAgentLlm:
+      type: object
+      required: [source, localProjectId, projectName, taskTitle, modelName, sourceFingerprint, modelSha256, runtimeStatus]
+      properties:
+        source: {const: federated-task}
+        localProjectId: {type: string}
+        projectName: {type: string}
+        taskId: {type: [string, 'null']}
+        taskTitle: {type: string}
+        modelName: {type: string}
+        releaseId: {type: [string, 'null']}
+        modelVersionId: {type: [string, 'null']}
+        sourceFingerprint: {type: string}
+        modelSha256: {type: string}
+        localPath: {type: string}
+        modelArtifactPath: {type: [string, 'null']}
+        runtimeStatus: {type: string, enum: [installed, ready, error]}
+    AgentLlm:
+      oneOf:
+        - {$ref: '#/components/schemas/HuggingFaceAgentLlm'}
+        - {$ref: '#/components/schemas/FederatedTaskAgentLlm'}
+      discriminator:
+        propertyName: source
+        mapping:
+          huggingface: '#/components/schemas/HuggingFaceAgentLlm'
+          federated-task: '#/components/schemas/FederatedTaskAgentLlm'
+    AgentToolModel:
+      type: object
+      required: [localProjectId, projectName, taskTitle, modelName, sourceFingerprint, modelSha256, localPath]
+      properties:
+        localProjectId: {type: string}
+        projectName: {type: string}
+        taskId: {type: [string, 'null']}
+        runtimeKey: {type: [string, 'null']}
+        registryId: {type: [string, 'null']}
+        taskTitle: {type: string}
+        releaseId: {type: [string, 'null']}
+        modelVersionId: {type: [string, 'null']}
+        modelName: {type: string}
+        modelVersion: {type: [integer, 'null'], minimum: 1}
+        format: {type: [string, 'null']}
+        sourceFingerprint: {type: string}
+        modelSha256: {type: string}
+        localPath: {type: string}
+        modelArtifactPath: {type: [string, 'null']}
+        toolManifest: {type: object, additionalProperties: true}
+    AgentModelSource:
+      type: object
+      required: [localProjectId, projectName, displayPath, capability, ready, taskTitle, modelName]
+      properties:
+        localProjectId: {type: string}
+        projectName: {type: string}
+        displayPath: {type: string}
+        capability: {type: string, enum: [base-llm, tool-ai]}
+        ready: {type: boolean}
+        reason: {type: [string, 'null']}
+        taskId: {type: [string, 'null']}
+        runtimeKey: {type: [string, 'null']}
+        registryId: {type: [string, 'null']}
+        taskTitle: {type: string}
+        modelName: {type: string}
+        releaseId: {type: [string, 'null']}
+        modelVersionId: {type: [string, 'null']}
+        modelVersion: {type: [integer, 'null']}
+        format: {type: [string, 'null']}
+        sourceFingerprint: {type: [string, 'null']}
+        modelSha256: {type: [string, 'null']}
+        localPath: {type: [string, 'null']}
+        modelArtifactPath: {type: [string, 'null']}
+        availableModelVersions:
+          type: array
+          items: {$ref: '#/components/schemas/AgentModelVersionSource'}
+        toolManifest: {type: [object, 'null'], additionalProperties: true}
+    AgentModelVersionSource:
+      type: object
+      required: [modelVersionId, label, cached]
+      properties:
+        modelVersionId: {type: [string, 'null']}
+        version: {type: [integer, 'null']}
+        role: {type: [string, 'null']}
+        label: {type: string}
+        sourceFormat:
+          type: [string, 'null']
+          description: Immutable format stored by the FedOps Global Model registry.
+        format: {type: [string, 'null']}
+        size: {type: [integer, 'null']}
+        sha256: {type: [string, 'null']}
+        cached: {type: boolean}
+        modelArtifactPath: {type: [string, 'null']}
+    AgentModelSourceList:
+      type: object
+      required: [items, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AgentModelSource'}
+        source: {const: account-local-workspace-and-registry-versions}
+    AgentRegistryModelSource:
+      type: object
+      required:
+        - registryId
+        - title
+        - displayName
+        - modelName
+        - capability
+        - ownerHandle
+        - summary
+        - participationPolicy
+        - registryStatus
+        - accessState
+        - canRequestParticipation
+        - canOpenWorkspace
+      properties:
+        registryId: {type: string}
+        taskId: {type: [string, 'null']}
+        title: {type: string}
+        displayName: {type: string}
+        modelName: {type: string}
+        capability: {type: string, enum: [base-llm, tool-ai]}
+        ownerHandle: {type: [string, 'null']}
+        slug: {type: [string, 'null']}
+        summary: {type: string}
+        participationPolicy: {type: string, enum: [closed, approval_required, open]}
+        registryStatus: {type: string}
+        membershipRole: {type: [string, 'null'], enum: [owner, participant, null]}
+        participationStatus: {type: [string, 'null']}
+        accessState:
+          type: string
+          enum: [workspace-required, approval-pending, join-required, unavailable]
+        canRequestParticipation: {type: boolean}
+        canOpenWorkspace: {type: boolean}
+    AgentRegistryModelSourceList:
+      type: object
+      required: [items, source]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AgentRegistryModelSource'}
+        source: {const: fedops-web-registry}
+    AgentHarness:
+      type: object
+      required: [instructions, toolRouting, contextWindow, memory, safety, temperature, maxTokens]
+      properties:
+        instructions: {type: string, maxLength: 12000}
+        toolRouting: {type: string, enum: [automatic, explicit]}
+        contextWindow: {type: integer, minimum: 512, maximum: 262144}
+        memory: {type: string, enum: [none, session]}
+        safety: {type: string, enum: [standard, strict]}
+        temperature: {type: number, minimum: 0, maximum: 2}
+        maxTokens: {type: integer, minimum: 1, maximum: 8192}
+    CreateAgentDraft:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 80}
+        description: {type: string, maxLength: 500}
+    UpdateAgentDraft:
+      type: object
+      required: [name, description, llm, tools, harness]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 80}
+        description: {type: string, maxLength: 500}
+        llm:
+          anyOf:
+            - {$ref: '#/components/schemas/AgentLlm'}
+            - {type: 'null'}
+        tools:
+          type: array
+          maxItems: 16
+          items: {$ref: '#/components/schemas/AgentToolModel'}
+        harness: {$ref: '#/components/schemas/AgentHarness'}
+    AgentDraft:
+      type: object
+      required: [schemaVersion, agentId, name, description, status, llm, tools, harness, buildRevision, createdAt, updatedAt]
+      properties:
+        schemaVersion: {type: integer, const: 1}
+        agentId: {type: string}
+        name: {type: string}
+        description: {type: string}
+        status: {type: string, enum: [draft, modified, validation-required, ready, built]}
+        llm:
+          anyOf:
+            - {$ref: '#/components/schemas/AgentLlm'}
+            - {type: 'null'}
+        tools:
+          type: array
+          items: {$ref: '#/components/schemas/AgentToolModel'}
+        harness: {$ref: '#/components/schemas/AgentHarness'}
+        validation:
+          anyOf:
+            - {$ref: '#/components/schemas/AgentValidation'}
+            - {type: 'null'}
+        buildRevision: {type: integer, minimum: 0}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    AgentDraftList:
+      type: object
+      required: [items, source]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/AgentDraft'}}
+        source: {const: account-local-agent-store}
+    AgentValidationCheck:
+      type: object
+      required: [id, label, status, detail]
+      properties:
+        id: {type: string}
+        label: {type: string}
+        status: {type: string, enum: [passed, failed, pending]}
+        detail: {type: string}
+    AgentValidation:
+      type: object
+      required: [ok, checkedAt, sourceFingerprint, checks]
+      properties:
+        ok: {type: boolean}
+        checkedAt: {type: string, format: date-time}
+        sourceFingerprint: {type: string}
+        checks:
+          type: array
+          items: {$ref: '#/components/schemas/AgentValidationCheck'}
+    BuiltAgent:
+      type: object
+      required: [schemaVersion, agentId, name, description, status, buildRevision, builtAt, sourceFingerprint, llm, tools, harness, serving]
+      properties:
+        schemaVersion: {type: integer, const: 1}
+        agentId: {type: string}
+        name: {type: string}
+        description: {type: string}
+        status: {const: built}
+        buildRevision: {type: integer, minimum: 1}
+        builtAt: {type: string, format: date-time}
+        sourceFingerprint: {type: string}
+        llm: {$ref: '#/components/schemas/AgentLlm'}
+        tools:
+          type: array
+          items: {$ref: '#/components/schemas/AgentToolModel'}
+        harness: {$ref: '#/components/schemas/AgentHarness'}
+        serving: {$ref: '#/components/schemas/AgentServing'}
+    BuiltAgentList:
+      type: object
+      required: [items, source]
+      properties:
+        items: {type: array, items: {$ref: '#/components/schemas/BuiltAgent'}}
+        source: {const: account-local-agent-builds}
+    AgentServing:
+      type: object
+      required: [agentId, enabled, endpointBase, endpointUrl, port, tokenCreatedAt, requestCount, dataSourceCount, directToolIds]
+      properties:
+        agentId: {type: string}
+        enabled: {type: boolean}
+        endpointBase: {type: string}
+        endpointUrl: {type: string}
+        port: {type: [integer, 'null'], minimum: 24400, maximum: 24499}
+        tokenCreatedAt: {type: [string, 'null'], format: date-time}
+        requestCount: {type: integer, minimum: 0}
+        dataSourceCount: {type: integer, minimum: 0}
+        directToolIds:
+          type: array
+          description: Tool IDs explicitly exposed through the advanced direct invocation API.
+          items: {type: string}
+    AgentServingRequest:
+      type: object
+      required: [port]
+      properties:
+        port: {type: integer, minimum: 24400, maximum: 24499}
+    AgentDirectToolServingRequest:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: {type: boolean}
+    AgentServingCredential:
+      type: object
+      required: [serving, token]
+      properties:
+        serving: {$ref: '#/components/schemas/AgentServing'}
+        token:
+          type: string
+          description: Plain bearer secret shown only at creation or rotation.
+    AgentChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message: {type: string, minLength: 1, maxLength: 12000}
+        history:
+          type: array
+          maxItems: 40
+          items: {$ref: '#/components/schemas/AgentChatMessage'}
+        toolInput:
+          type: [object, 'null']
+          additionalProperties: true
+          deprecated: true
+          description: Legacy inline payload. New clients use input.type=inline.
+        input:
+          anyOf:
+            - {$ref: '#/components/schemas/AgentInlineToolInput'}
+            - {$ref: '#/components/schemas/AgentDataSourceToolInput'}
+            - {type: 'null'}
+        toolId:
+          type: [string, 'null']
+          description: Optional Tool AI hint for Task Data or explicit routing; automatic Harness routing remains the default.
+    AgentInlineToolInput:
+      type: object
+      required: [type, payload]
+      properties:
+        type: {const: inline}
+        payload: {type: object, additionalProperties: true}
+        toolId: {type: [string, 'null']}
+    AgentDataSourceToolInput:
+      type: object
+      required: [type, sourceId]
+      properties:
+        type: {const: data-source}
+        sourceId: {type: string}
+        sampleIndex: {type: [integer, 'null'], minimum: 0}
+    AgentServingDataSourceRequest:
+      type: object
+      required: [toolId, dataPath, sampleIndex, selectionMode, enabledForServing]
+      properties:
+        toolId: {type: string}
+        name: {type: string, maxLength: 120}
+        dataPath: {type: string, maxLength: 1000}
+        sampleIndex: {type: integer, minimum: 0}
+        selectionMode: {type: string, enum: [fixed, request]}
+        enabledForServing: {type: boolean}
+    AgentServingDataSource:
+      type: object
+      required: [sourceId, toolId, name, dataPath, sampleIndex, selectionMode, enabledForServing, available, hasEntries, fileCount, updatedAt]
+      properties:
+        sourceId: {type: string}
+        toolId: {type: string}
+        name: {type: string}
+        dataPath: {type: string}
+        sampleIndex: {type: integer, minimum: 0}
+        selectionMode: {type: string, enum: [fixed, request]}
+        enabledForServing: {type: boolean}
+        available: {type: boolean}
+        hasEntries: {type: boolean}
+        fileCount: {type: integer, minimum: 0}
+        updatedAt: {type: string, format: date-time}
+    AgentToolPredictionRequest:
+      type: object
+      required: [input]
+      properties:
+        input:
+          oneOf:
+            - {$ref: '#/components/schemas/AgentInlineToolInput'}
+            - {$ref: '#/components/schemas/AgentDataSourceToolInput'}
+    AgentToolPredictionResponse:
+      type: object
+      required: [tool, result, durationMs, inputSource]
+      properties:
+        tool: {type: object, additionalProperties: true}
+        result: {type: object, additionalProperties: true}
+        durationMs: {type: number, minimum: 0}
+        inputSource: {type: object, additionalProperties: true}
+    AgentChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: {type: string, enum: [user, assistant]}
+        content: {type: string, minLength: 1, maxLength: 12000}
+    AgentChatResponse:
+      type: object
+      required: [requestId, agentId, status, response, trace, createdAt]
+      properties:
+        requestId: {type: string}
+        agentId: {type: string}
+        status: {type: string, enum: [succeeded, failed]}
+        response: {type: string}
+        toolResult:
+          type: [object, 'null']
+          additionalProperties: true
+        toolResults:
+          type: array
+          items: {type: object, additionalProperties: true}
+        trace:
+          type: array
+          items: {type: object, additionalProperties: true}
+        createdAt: {type: string, format: date-time}
+    AgentChatStreamEvent:
+      type: object
+      required: [type]
+      properties:
+        type: {type: string, enum: [stage, delta, completed, error]}
+        stage: {type: string}
+        content: {type: string}
+        detail: {type: string}
+        result:
+          anyOf:
+            - {$ref: '#/components/schemas/AgentChatResponse'}
+            - {type: 'null'}
+    AgentLlmPreparation:
+      type: object
+      required: [preparationId, status, stage, percent, downloadedBytes, detail, provider, model, localPath, startedAt, updatedAt]
+      properties:
+        preparationId: {type: string}
+        status: {type: string, enum: [queued, running, succeeded, failed]}
+        stage: {type: string, enum: [queued, checking, downloading, verifying, ready, failed]}
+        percent: {type: number, minimum: 0, maximum: 100}
+        downloadedBytes: {type: integer, minimum: 0}
+        totalBytes: {type: [integer, 'null'], minimum: 0}
+        detail: {type: string}
+        provider: {type: string}
+        model: {type: string}
+        localPath: {type: string}
+        startedAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+    Run:
+      type: object
+      required: [runId, kind, status, progress, metricSeries]
+      properties:
+        runId: {type: string}
+        kind: {type: string, enum: [create, environment-sync, validate, run-file, local-train, release-readiness, participation-readiness, release-candidate, local-evaluate, participate, agent-serve]}
+        status: {type: string, enum: [queued, running, succeeded, failed, cancelled]}
+        localProjectId: {type: [string, 'null']}
+        environmentId: {type: [string, 'null']}
+        taskId: {type: [string, 'null']}
+        command: {type: string}
+        createdAt: {type: string, format: date-time}
+        startedAt: {type: [string, 'null'], format: date-time}
+        endedAt: {type: [string, 'null'], format: date-time}
+        exitCode: {type: [integer, 'null']}
+        output: {type: string}
+        resultLocalProjectId: {type: [string, 'null']}
+        result:
+          type: [object, 'null']
+          additionalProperties: true
+        progress:
+          oneOf:
+            - {$ref: '#/components/schemas/TrainingProgress'}
+            - {type: 'null'}
+        metricSeries:
+          type: array
+          items: {$ref: '#/components/schemas/TrainingMetricPoint'}
+    TrainingProgress:
+      type: object
+      required: [schemaVersion, stage, percent, message, timestamp, metrics]
+      properties:
+        schemaVersion: {type: integer, const: 1}
+        stage: {type: string, enum: [preparing, loading-data, training, evaluating, exporting, completed]}
+        percent: {type: number, minimum: 0, maximum: 100}
+        message: {type: string}
+        timestamp: {type: string, format: date-time}
+        epoch: {type: [integer, 'null'], minimum: 1}
+        epochs: {type: [integer, 'null'], minimum: 1}
+        batch: {type: [integer, 'null'], minimum: 1}
+        totalBatches: {type: [integer, 'null'], minimum: 1}
+        step:
+          type: [integer, 'null']
+          minimum: 0
+          description: Optional zero- or one-based local progress step when the Task has no batch concept.
+        totalSteps: {type: [integer, 'null'], minimum: 1}
+        metrics:
+          type: object
+          additionalProperties: {type: number}
+    TrainingMetricPoint:
+      type: object
+      required: [timestamp, stage, percent, metrics]
+      properties:
+        timestamp: {type: string, format: date-time}
+        stage: {type: string}
+        percent: {type: number, minimum: 0, maximum: 100}
+        epoch: {type: [integer, 'null']}
+        epochs: {type: [integer, 'null']}
+        batch: {type: [integer, 'null']}
+        totalBatches: {type: [integer, 'null']}
+        step: {type: [integer, 'null'], minimum: 0}
+        totalSteps: {type: [integer, 'null']}
+        metrics:
+          type: object
+          additionalProperties: {type: number}
+    Capabilities:
+      type: object
+      additionalProperties: {type: boolean}
+    HardwareGpuDevice:
+      type: object
+      required: [name, memoryBytes, computeUnits]
+      properties:
+        name: {type: string}
+        memoryBytes: {type: [integer, 'null'], minimum: 0}
+        computeUnits: {type: [integer, 'null'], minimum: 0}
+    HardwareInformation:
+      type: object
+      required: [source, platform, cpu, memory, gpu]
+      properties:
+        source: {type: string, enum: [host, runtime]}
+        platform:
+          type: object
+          required: [system, release, architecture]
+          properties:
+            system: {type: string}
+            release: {type: string}
+            architecture: {type: string}
+        cpu:
+          type: object
+          required: [model, logicalCores]
+          properties:
+            model: {type: string}
+            logicalCores: {type: integer, minimum: 1}
+        memory:
+          type: object
+          required: [totalBytes]
+          properties:
+            totalBytes: {type: integer, minimum: 0}
+        gpu:
+          type: object
+          required: [detected, devices]
+          properties:
+            detected: {type: boolean}
+            devices:
+              type: array
+              items: {$ref: '#/components/schemas/HardwareGpuDevice'}
+    Bootstrap:
+      type: object
+      required: [version, connections, session, workspace, hardware, capabilities]
+      properties:
+        version: {type: string}
+        connections:
+          type: object
+          required: [fedopsWeb, fedopsRegister]
+          properties:
+            fedopsWeb: {type: string, format: uri}
+            fedopsRegister: {type: string, format: uri}
+        session: {$ref: '#/components/schemas/Session'}
+        workspace:
+          type: object
+          required: [root, displayRoot, projects, legacyProjects, projectDiscovery]
+          properties:
+            root: {type: string}
+            displayRoot: {type: string}
+            projects:
+              type: array
+              items:
+                allOf:
+                  - {$ref: '#/components/schemas/LocalProject'}
+            legacyProjects:
+              type: array
+              items: {$ref: '#/components/schemas/LegacyWorkspaceProject'}
+            projectDiscovery: {type: string}
+        hardware: {$ref: '#/components/schemas/HardwareInformation'}
+        capabilities: {$ref: '#/components/schemas/Capabilities'}

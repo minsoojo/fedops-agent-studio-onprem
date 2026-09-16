@@ -1,0 +1,30 @@
+services:
+  studio-api-dev:
+    image: gachonccl/fedops-agent-studio:latest
+    container_name: fedops-agent-studio-dev-api
+    init: true
+    environment:
+      WORKSPACE_DIR: /workspace
+      STUDIO_RUN_HISTORY_DIR: /workspace/.fedops-studio/runtime-history
+      STUDIO_HOST: 0.0.0.0
+      STUDIO_PORT: 24368
+      STUDIO_HOST_WORKSPACE_DIR: ${HOME}/fedops-workspace
+      STUDIO_FOLDER_OPENER_URL: http://host.docker.internal:5602
+      STUDIO_FOLDER_OPENER_TOKEN_FILE: /run/secrets/folder-opener-token
+      UV_CACHE_DIR: /var/cache/fedops-uv/cache
+      UV_PYTHON_INSTALL_DIR: /var/cache/fedops-uv/python
+    ports:
+      - 127.0.0.1:${STUDIO_DEV_API_PORT:-24369}:24368
+      - 127.0.0.1:24400-24499:24400-24499
+    volumes:
+      - ${HOME}/fedops-workspace:/workspace
+      - fedops-agent-studio-uv:/var/cache/fedops-uv
+      - ./services/studio-api/src:/opt/fedops-agent-studio/services/studio-api/src:ro
+      - ./services/studio-runtime/src:/opt/fedops-agent-studio/services/studio-runtime/src:ro
+      - ./.runtime/folder-opener-token:/run/secrets/folder-opener-token:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+volumes:
+  fedops-agent-studio-uv:

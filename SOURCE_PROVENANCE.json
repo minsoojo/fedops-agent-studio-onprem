@@ -1,0 +1,787 @@
+{
+  "sourceExport": "FedOps-AgentStudio",
+  "basis": "Sanitized handoff plus 67-file configuration manifest; new history, not an upstream fork or full export.",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sourceSha256": "5039acd4ebdd7bac2c8ab2f6c10774439c775c430f72319c0d0c3eac072bcba1",
+      "repositorySha256": "5039acd4ebdd7bac2c8ab2f6c10774439c775c430f72319c0d0c3eac072bcba1"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sourceSha256": "000f82661068e0330e7de507e7e9e641f5fa6d4b0183e91f7ae4bc952b2ef710",
+      "repositorySha256": "000f82661068e0330e7de507e7e9e641f5fa6d4b0183e91f7ae4bc952b2ef710"
+    },
+    {
+      "path": ".gitignore",
+      "sourceSha256": "9b59723c79cbc0e72a9117dfa51c33a048beddbee71a1c6b84de590ac8bfca03",
+      "repositorySha256": "507e181c6f522a5f9bec0a7d0c244b55dbea49fe4cd0cc807f5f441019f3d380"
+    },
+    {
+      "path": "AGENTS.md",
+      "sourceSha256": "1039d19216931e400bd3e46f63ee418e1d8642fc507f3a0b41d428119255d7f1",
+      "repositorySha256": "1039d19216931e400bd3e46f63ee418e1d8642fc507f3a0b41d428119255d7f1"
+    },
+    {
+      "path": "Makefile",
+      "sourceSha256": "bae3541a14a0bb6f164e4dca5de705350e99ab0fa54b023d8d2f83bc3135103f",
+      "repositorySha256": "bae3541a14a0bb6f164e4dca5de705350e99ab0fa54b023d8d2f83bc3135103f"
+    },
+    {
+      "path": "README.md",
+      "sourceSha256": "19fa629b301e3b466af0b202d0cb86715a0d9aaa07f1b2b548075c1c3a28aebf",
+      "repositorySha256": "19fa629b301e3b466af0b202d0cb86715a0d9aaa07f1b2b548075c1c3a28aebf"
+    },
+    {
+      "path": "apps/studio-web/.gitignore",
+      "sourceSha256": "b8b8d5b32e3c79035bbd2f5a2cfb3e5cb808cd762afe1f8bdf63297164b6abc0",
+      "repositorySha256": "b8b8d5b32e3c79035bbd2f5a2cfb3e5cb808cd762afe1f8bdf63297164b6abc0"
+    },
+    {
+      "path": "apps/studio-web/index.html",
+      "sourceSha256": "aeb452837d2bd3366f1141771d09d554f7a1c99f9627492f815e9cb220811bd9",
+      "repositorySha256": "aeb452837d2bd3366f1141771d09d554f7a1c99f9627492f815e9cb220811bd9"
+    },
+    {
+      "path": "apps/studio-web/package.json",
+      "sourceSha256": "4ee05db10a8dfbc8e6608aa525276762a563088640e34278c24fc53ddb7a40e1",
+      "repositorySha256": "4ee05db10a8dfbc8e6608aa525276762a563088640e34278c24fc53ddb7a40e1"
+    },
+    {
+      "path": "apps/studio-web/src/api/agents.ts",
+      "sourceSha256": "a20ee1597de6cd0d6371a70e896e903e05fd2e9120a8c3454d6d3cdc53b9af5e",
+      "repositorySha256": "a20ee1597de6cd0d6371a70e896e903e05fd2e9120a8c3454d6d3cdc53b9af5e"
+    },
+    {
+      "path": "apps/studio-web/src/api/auth.ts",
+      "sourceSha256": "62b4727d36689275700f04da4a8824fa451e0363e84b7e8a773093a56daa7705",
+      "repositorySha256": "62b4727d36689275700f04da4a8824fa451e0363e84b7e8a773093a56daa7705"
+    },
+    {
+      "path": "apps/studio-web/src/api/environments.ts",
+      "sourceSha256": "a98e5594656633602363ef08630e4e4a6449872b3179487dbf9b15d37aa7f48b",
+      "repositorySha256": "a98e5594656633602363ef08630e4e4a6449872b3179487dbf9b15d37aa7f48b"
+    },
+    {
+      "path": "apps/studio-web/src/api/federatedLearning.ts",
+      "sourceSha256": "60c0dca8508691ccf3e4f6c0884ab7bf5d98da114f2bddf44d7563bba21bc896",
+      "repositorySha256": "60c0dca8508691ccf3e4f6c0884ab7bf5d98da114f2bddf44d7563bba21bc896"
+    },
+    {
+      "path": "apps/studio-web/src/api/http.ts",
+      "sourceSha256": "6e466297386cbfa82727cae45340e0656959a0c55fbbc63a3a9bff124639d5d1",
+      "repositorySha256": "6e466297386cbfa82727cae45340e0656959a0c55fbbc63a3a9bff124639d5d1"
+    },
+    {
+      "path": "apps/studio-web/src/api/registry.ts",
+      "sourceSha256": "9b66c31912967cf1243c829953df82de8b577e68629296e8725e165a9bef260a",
+      "repositorySha256": "9b66c31912967cf1243c829953df82de8b577e68629296e8725e165a9bef260a"
+    },
+    {
+      "path": "apps/studio-web/src/api/system.ts",
+      "sourceSha256": "ecca2efb1a3ea1c8ce5271edc692fad5e8333cbd6ae062320836b148960634f0",
+      "repositorySha256": "ecca2efb1a3ea1c8ce5271edc692fad5e8333cbd6ae062320836b148960634f0"
+    },
+    {
+      "path": "apps/studio-web/src/api/validationData.ts",
+      "sourceSha256": "1d1eef7af58a413c02c208b794c7e817e7a007dfe46b41663866c777dab33aa1",
+      "repositorySha256": "1d1eef7af58a413c02c208b794c7e817e7a007dfe46b41663866c777dab33aa1"
+    },
+    {
+      "path": "apps/studio-web/src/api/workspace.ts",
+      "sourceSha256": "5686f1d718072b9339f64e841271afbe405d70c7afa75b7fc4fd429c7f6acf42",
+      "repositorySha256": "5686f1d718072b9339f64e841271afbe405d70c7afa75b7fc4fd429c7f6acf42"
+    },
+    {
+      "path": "apps/studio-web/src/app/ActivityBar.tsx",
+      "sourceSha256": "84197ce7e31b7e27fd0fef9fb3de92679f2cd1e4591c7e22cb4fe444764bc581",
+      "repositorySha256": "84197ce7e31b7e27fd0fef9fb3de92679f2cd1e4591c7e22cb4fe444764bc581"
+    },
+    {
+      "path": "apps/studio-web/src/app/App.tsx",
+      "sourceSha256": "5a7937cfd7f9c8332e8908937681870ef83135c7ab5a0b85e7299e3a59746d3a",
+      "repositorySha256": "5a7937cfd7f9c8332e8908937681870ef83135c7ab5a0b85e7299e3a59746d3a"
+    },
+    {
+      "path": "apps/studio-web/src/app/AppErrorBoundary.tsx",
+      "sourceSha256": "55146a9a0a677bf5acb0e1422e399d542851e5963d0ca9eefff175c34c18e6ab",
+      "repositorySha256": "55146a9a0a677bf5acb0e1422e399d542851e5963d0ca9eefff175c34c18e6ab"
+    },
+    {
+      "path": "apps/studio-web/src/app/SessionGate.tsx",
+      "sourceSha256": "e91d50ba71739308292436a225641c780b0f2763d29a3ebb8ea0c3aede49a1b4",
+      "repositorySha256": "e91d50ba71739308292436a225641c780b0f2763d29a3ebb8ea0c3aede49a1b4"
+    },
+    {
+      "path": "apps/studio-web/src/app/StatusBar.tsx",
+      "sourceSha256": "f157a302ec23e2321230b05bd6b669ae15d551ef8502cdfee84c3adf41a0ab4a",
+      "repositorySha256": "f157a302ec23e2321230b05bd6b669ae15d551ef8502cdfee84c3adf41a0ab4a"
+    },
+    {
+      "path": "apps/studio-web/src/app/StudioProvider.tsx",
+      "sourceSha256": "62e966c52d3d36f6e3e9dd985f72e4bfdf9bb75b0e1e5e07e2c408b76d6d8a56",
+      "repositorySha256": "62e966c52d3d36f6e3e9dd985f72e4bfdf9bb75b0e1e5e07e2c408b76d6d8a56"
+    },
+    {
+      "path": "apps/studio-web/src/app/TitleBar.tsx",
+      "sourceSha256": "3dc10c83afec67be35d9f2587487a8cca02e8ee7f840075f919744b4b5c2695b",
+      "repositorySha256": "3dc10c83afec67be35d9f2587487a8cca02e8ee7f840075f919744b4b5c2695b"
+    },
+    {
+      "path": "apps/studio-web/src/app/i18n.tsx",
+      "sourceSha256": "69956731e315120ba59272e6c32d3877990bc3959190b6b8d6522a724ff66143",
+      "repositorySha256": "69956731e315120ba59272e6c32d3877990bc3959190b6b8d6522a724ff66143"
+    },
+    {
+      "path": "apps/studio-web/src/app/taskPresentation.ts",
+      "sourceSha256": "4cfbc3221fc2858d8cd5e0b9d51824ea3e7a4c5ecfd950ca2f76b0d656fc24e9",
+      "repositorySha256": "4cfbc3221fc2858d8cd5e0b9d51824ea3e7a4c5ecfd950ca2f76b0d656fc24e9"
+    },
+    {
+      "path": "apps/studio-web/src/app/theme.ts",
+      "sourceSha256": "651fb5b4a7d40b22f01b0fc9b5098fde91448aaa143b418f0b471cb49211a88d",
+      "repositorySha256": "651fb5b4a7d40b22f01b0fc9b5098fde91448aaa143b418f0b471cb49211a88d"
+    },
+    {
+      "path": "apps/studio-web/src/app/types.ts",
+      "sourceSha256": "7c7329358fe96cb9d6e4fe45e6a0296c200a24163a4783b0d225082488d6f8a5",
+      "repositorySha256": "7c7329358fe96cb9d6e4fe45e6a0296c200a24163a4783b0d225082488d6f8a5"
+    },
+    {
+      "path": "apps/studio-web/src/assets/fedops-logo.png",
+      "sourceSha256": "f12bd5822e790b77c5234f68b941d7d56b3c0af697536f3c3f9b5dcf88bbd52b",
+      "repositorySha256": "f12bd5822e790b77c5234f68b941d7d56b3c0af697536f3c3f9b5dcf88bbd52b"
+    },
+    {
+      "path": "apps/studio-web/src/favicon.ts",
+      "sourceSha256": "b0d919b130fb14ebc49c8147f5f81e698f2b3758f0e419e0f4c032e3bca0ac63",
+      "repositorySha256": "b0d919b130fb14ebc49c8147f5f81e698f2b3758f0e419e0f4c032e3bca0ac63"
+    },
+    {
+      "path": "apps/studio-web/src/features/agent-builder/AgentBuilderScreen.tsx",
+      "sourceSha256": "18b2220c2a2b8b15ce0123e6943bfaed1628b74f0ba42cc2d58c550085f6e2d8",
+      "repositorySha256": "18b2220c2a2b8b15ce0123e6943bfaed1628b74f0ba42cc2d58c550085f6e2d8"
+    },
+    {
+      "path": "apps/studio-web/src/features/agents/AgentsScreen.tsx",
+      "sourceSha256": "b95d963a64aa3543b631e4375f64cd0104eda1dbbf3da89de0c8571af62cac34",
+      "repositorySha256": "b95d963a64aa3543b631e4375f64cd0104eda1dbbf3da89de0c8571af62cac34"
+    },
+    {
+      "path": "apps/studio-web/src/features/federated-learning/FederatedLearningScreen.tsx",
+      "sourceSha256": "b04949fee437a0df91033c0df3810ecd2e204a252ab63576d42edfbd72bf337e",
+      "repositorySha256": "b04949fee437a0df91033c0df3810ecd2e204a252ab63576d42edfbd72bf337e"
+    },
+    {
+      "path": "apps/studio-web/src/features/home/HomeScreen.tsx",
+      "sourceSha256": "c751d01d902b17a35895de454922e4697b29e63c432deb3ae167c7271f11f236",
+      "repositorySha256": "c751d01d902b17a35895de454922e4697b29e63c432deb3ae167c7271f11f236"
+    },
+    {
+      "path": "apps/studio-web/src/features/python-environments/PythonEnvironmentPanel.tsx",
+      "sourceSha256": "69e20e3c612186ae3fc27256dd875d8823f063867fd61d0a675ebe595c5fb3b8",
+      "repositorySha256": "69e20e3c612186ae3fc27256dd875d8823f063867fd61d0a675ebe595c5fb3b8"
+    },
+    {
+      "path": "apps/studio-web/src/features/registry/RegistryScreen.tsx",
+      "sourceSha256": "9c89da3767fc6ee30398c78260cf8df9e5779a7d270b27db4afc0fd15f1357fb",
+      "repositorySha256": "9c89da3767fc6ee30398c78260cf8df9e5779a7d270b27db4afc0fd15f1357fb"
+    },
+    {
+      "path": "apps/studio-web/src/features/settings/SettingsScreen.tsx",
+      "sourceSha256": "ca6580d959b701e50e2b359b500780d927b24351eb0894d03fb7ebe3a4ae1bac",
+      "repositorySha256": "ca6580d959b701e50e2b359b500780d927b24351eb0894d03fb7ebe3a4ae1bac"
+    },
+    {
+      "path": "apps/studio-web/src/features/workspace/ServerValidationData.tsx",
+      "sourceSha256": "a795ba70b67b40eb6dd8680863102525325752f234a358c24a97f737aa59ecbd",
+      "repositorySha256": "a795ba70b67b40eb6dd8680863102525325752f234a358c24a97f737aa59ecbd"
+    },
+    {
+      "path": "apps/studio-web/src/features/workspace/WorkspaceScreen.tsx",
+      "sourceSha256": "4c39e6f38c2922245ee91e966f2a8dccc831438e3525f1165b2f9b73bcd74300",
+      "repositorySha256": "4c39e6f38c2922245ee91e966f2a8dccc831438e3525f1165b2f9b73bcd74300"
+    },
+    {
+      "path": "apps/studio-web/src/features/workspace/WorkspaceTerminal.tsx",
+      "sourceSha256": "cf5de546b2d8f74c720813e68eba884b299bd0abea67b2abd078ed85eeb2297d",
+      "repositorySha256": "cf5de546b2d8f74c720813e68eba884b299bd0abea67b2abd078ed85eeb2297d"
+    },
+    {
+      "path": "apps/studio-web/src/index.css",
+      "sourceSha256": "c5c2b5424ba8184192d25f21e876300868afd230a22432d1493164f5b26bfe27",
+      "repositorySha256": "c5c2b5424ba8184192d25f21e876300868afd230a22432d1493164f5b26bfe27"
+    },
+    {
+      "path": "apps/studio-web/src/main.tsx",
+      "sourceSha256": "bf25b5274d3f94c96cff1f67fce517e3369291d7a59661ccf1ba27b0b24071fc",
+      "repositorySha256": "bf25b5274d3f94c96cff1f67fce517e3369291d7a59661ccf1ba27b0b24071fc"
+    },
+    {
+      "path": "apps/studio-web/src/ui/CodeEditor.tsx",
+      "sourceSha256": "8ecabd55aaca7ea566def0d5754b3b210b1e5e75b892f0ead7573b884e16f678",
+      "repositorySha256": "8ecabd55aaca7ea566def0d5754b3b210b1e5e75b892f0ead7573b884e16f678"
+    },
+    {
+      "path": "apps/studio-web/src/ui/FedOpsLogo.tsx",
+      "sourceSha256": "7f7f0a78bddd62ed7d0d2165d46d91472d4274d0ce768459aa89c1791db1c57f",
+      "repositorySha256": "7f7f0a78bddd62ed7d0d2165d46d91472d4274d0ce768459aa89c1791db1c57f"
+    },
+    {
+      "path": "apps/studio-web/src/ui/FileTypeIcon.tsx",
+      "sourceSha256": "c89d19302cd02de64576cbdbe31526cb7bf4df6311469d5cdd9a0baf3c8cfc57",
+      "repositorySha256": "c89d19302cd02de64576cbdbe31526cb7bf4df6311469d5cdd9a0baf3c8cfc57"
+    },
+    {
+      "path": "apps/studio-web/src/ui/MetricChartPanel.tsx",
+      "sourceSha256": "a0c9fd0e7db63b68756def04d16422bfcc3540ac92b9794fc1f1cde4f388014a",
+      "repositorySha256": "a0c9fd0e7db63b68756def04d16422bfcc3540ac92b9794fc1f1cde4f388014a"
+    },
+    {
+      "path": "apps/studio-web/src/ui/TaskDataPanel.tsx",
+      "sourceSha256": "de9119ba0a1725b9b413b490af861ef2895d8a7e803e86ff52741c572684d074",
+      "repositorySha256": "de9119ba0a1725b9b413b490af861ef2895d8a7e803e86ff52741c572684d074"
+    },
+    {
+      "path": "apps/studio-web/src/ui/UIKit.tsx",
+      "sourceSha256": "7de671ef72e54c1995e1523d23d0081a8abaafc0f8e289728c31dfde3c04c052",
+      "repositorySha256": "7de671ef72e54c1995e1523d23d0081a8abaafc0f8e289728c31dfde3c04c052"
+    },
+    {
+      "path": "apps/studio-web/src/ui/metricSemantics.ts",
+      "sourceSha256": "7c6386d0bace10d1a93a3968a241f373a5f6afe45b49f779f249a7335a3cdc84",
+      "repositorySha256": "7c6386d0bace10d1a93a3968a241f373a5f6afe45b49f779f249a7335a3cdc84"
+    },
+    {
+      "path": "apps/studio-web/src/vite-env.d.ts",
+      "sourceSha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5",
+      "repositorySha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "path": "apps/studio-web/tsconfig.json",
+      "sourceSha256": "9a1e96d63eaccd5416b2f78ecaccf2b3a27ca71e213fa5859cf5349c66123bf9",
+      "repositorySha256": "9a1e96d63eaccd5416b2f78ecaccf2b3a27ca71e213fa5859cf5349c66123bf9"
+    },
+    {
+      "path": "apps/studio-web/vite.config.ts",
+      "sourceSha256": "94d80d3656dd4dbfa6ed8610b81d230b3c2266ac21eaa9a1b9a1dcc7e900708d",
+      "repositorySha256": "94d80d3656dd4dbfa6ed8610b81d230b3c2266ac21eaa9a1b9a1dcc7e900708d"
+    },
+    {
+      "path": "compose.dev.yml",
+      "sourceSha256": "644529394ab843196df6b601c2c49921afd9f644c898d8874fd512f9227ce5a3",
+      "repositorySha256": "644529394ab843196df6b601c2c49921afd9f644c898d8874fd512f9227ce5a3"
+    },
+    {
+      "path": "contracts/realtime-events.md",
+      "sourceSha256": "99d13298441a86fd15eef339392214382b2f72e27d99d8d9191f1eb08ffc5b65",
+      "repositorySha256": "99d13298441a86fd15eef339392214382b2f72e27d99d8d9191f1eb08ffc5b65"
+    },
+    {
+      "path": "contracts/runtime-boundary.md",
+      "sourceSha256": "fd5327dd929a20cb8da955591a245015e7ab514dac55b95841550a0e8a528868",
+      "repositorySha256": "fd5327dd929a20cb8da955591a245015e7ab514dac55b95841550a0e8a528868"
+    },
+    {
+      "path": "contracts/studio-api.v1.yaml",
+      "sourceSha256": "218a7c13b755bb0bc10b9735613d02e94d9c499f3abff7fbb24f257a233be600",
+      "repositorySha256": "218a7c13b755bb0bc10b9735613d02e94d9c499f3abff7fbb24f257a233be600"
+    },
+    {
+      "path": "docs/architecture/domain-model.md",
+      "sourceSha256": "4b813c8e38260b862d98c45714119ca13c504f0b6e8a9c3e7161bc804197cadc",
+      "repositorySha256": "4b813c8e38260b862d98c45714119ca13c504f0b6e8a9c3e7161bc804197cadc"
+    },
+    {
+      "path": "docs/architecture/feature-boundaries.md",
+      "sourceSha256": "927d0a65ea99520ce91ef20484ccbd5ab7ace3a716529b409efe5ebf16cd1c29",
+      "repositorySha256": "927d0a65ea99520ce91ef20484ccbd5ab7ace3a716529b409efe5ebf16cd1c29"
+    },
+    {
+      "path": "docs/architecture/feature-contracts.md",
+      "sourceSha256": "f5082170879f00e6d74035d666f61ee76eaa809007ba252a940f9638af34c52d",
+      "repositorySha256": "f5082170879f00e6d74035d666f61ee76eaa809007ba252a940f9638af34c52d"
+    },
+    {
+      "path": "docs/architecture/frontend-backend-connections.md",
+      "sourceSha256": "57db370a60325e5c23041ce0ce824c296618e340643ef88a4e58a2b1574a6458",
+      "repositorySha256": "57db370a60325e5c23041ce0ce824c296618e340643ef88a4e58a2b1574a6458"
+    },
+    {
+      "path": "docs/architecture/system-overview.md",
+      "sourceSha256": "60ab9a067d8b36f39bf2fe0d2205c318ba4eb9791f8c17c4068aef237c970ae2",
+      "repositorySha256": "60ab9a067d8b36f39bf2fe0d2205c318ba4eb9791f8c17c4068aef237c970ae2"
+    },
+    {
+      "path": "docs/contracts/fedops-web-integration.md",
+      "sourceSha256": "6b8580f9d6b69cac7e2944fe6a29eb798137800c69fe905058591a607880a19d",
+      "repositorySha256": "6b8580f9d6b69cac7e2944fe6a29eb798137800c69fe905058591a607880a19d"
+    },
+    {
+      "path": "docs/contributing/custom-themes.md",
+      "sourceSha256": "05082c6a8e7268cdee81480cd3741fde6495624e0827ee0ee0f8858e2defd741",
+      "repositorySha256": "05082c6a8e7268cdee81480cd3741fde6495624e0827ee0ee0f8858e2defd741"
+    },
+    {
+      "path": "docs/contributing/repository-files.md",
+      "sourceSha256": "6ee471946df33a8883286ea53c3c9bc965553c4eb35d0209a61eddc8a7c1401a",
+      "repositorySha256": "6ee471946df33a8883286ea53c3c9bc965553c4eb35d0209a61eddc8a7c1401a"
+    },
+    {
+      "path": "docs/contributing/team-workflow.md",
+      "sourceSha256": "46b5ddd943a16a4b0a153da30ef49de2920df8509a7be3956f8e4c133280bc52",
+      "repositorySha256": "46b5ddd943a16a4b0a153da30ef49de2920df8509a7be3956f8e4c133280bc52"
+    },
+    {
+      "path": "docs/deployment/docker-distribution.md",
+      "sourceSha256": "ee4ddbd8ab20a751dee689bf667c81c9913398de21f5a6818f529ec7236bc58d",
+      "repositorySha256": "ee4ddbd8ab20a751dee689bf667c81c9913398de21f5a6818f529ec7236bc58d"
+    },
+    {
+      "path": "package-lock.json",
+      "sourceSha256": "c55dd7c4c4a93b80df86e0e5d8c08cf66be7867c31217655e543482051a0bedf",
+      "repositorySha256": "c55dd7c4c4a93b80df86e0e5d8c08cf66be7867c31217655e543482051a0bedf"
+    },
+    {
+      "path": "package.json",
+      "sourceSha256": "04eaac0186efb829a515c689d0bd5af89365238f145e4c7f8dacdcf6d2ac62dc",
+      "repositorySha256": "04eaac0186efb829a515c689d0bd5af89365238f145e4c7f8dacdcf6d2ac62dc"
+    },
+    {
+      "path": "scripts/assets/fedops-agent-studio-ascii.txt",
+      "sourceSha256": "2d5f03f0c6df714ba18bf98fd377a1282278345fd27d524af0670263f86cf975",
+      "repositorySha256": "2d5f03f0c6df714ba18bf98fd377a1282278345fd27d524af0670263f86cf975"
+    },
+    {
+      "path": "scripts/assets/fedops_logo_ascii.txt",
+      "sourceSha256": "86bb0dbe71aee7f4343328164f36fa1976e77711aeeb6d9afccb2365f4138f9c",
+      "repositorySha256": "86bb0dbe71aee7f4343328164f36fa1976e77711aeeb6d9afccb2365f4138f9c"
+    },
+    {
+      "path": "scripts/fedops_agent_studio_runner.py",
+      "sourceSha256": "8daea00d439e40f188e19a2521abfe1c8559a4882d8e0f8471af9afd22e3e297",
+      "repositorySha256": "8daea00d439e40f188e19a2521abfe1c8559a4882d8e0f8471af9afd22e3e297"
+    },
+    {
+      "path": "scripts/tests/test_agent_studio_runner.py",
+      "sourceSha256": "602f6297df3bed8bdcc27c35ae50c9905671edbc0ec03eda28061f619e6dc121",
+      "repositorySha256": "602f6297df3bed8bdcc27c35ae50c9905671edbc0ec03eda28061f619e6dc121"
+    },
+    {
+      "path": "services/studio-api/Dockerfile",
+      "sourceSha256": "8efe81eeb07907de6eb7f6cdffaf690e9fdf21ed286a2535c2e21e33bce7499c",
+      "repositorySha256": "8efe81eeb07907de6eb7f6cdffaf690e9fdf21ed286a2535c2e21e33bce7499c"
+    },
+    {
+      "path": "services/studio-api/pyproject.toml",
+      "sourceSha256": "024320a12a31cb7b22359711ebfd78b9993f25482910a9ede41d35d9fc69c7bb",
+      "repositorySha256": "024320a12a31cb7b22359711ebfd78b9993f25482910a9ede41d35d9fc69c7bb"
+    },
+    {
+      "path": "services/studio-api/requirements.txt",
+      "sourceSha256": "16d58693851c112765ea17646d03ec0678ef266cf695bb426d24873c5e721839",
+      "repositorySha256": "16d58693851c112765ea17646d03ec0678ef266cf695bb426d24873c5e721839"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/__init__.py",
+      "sourceSha256": "f02e1c53cc13944119ce39a3e3fe02b9252d73c5c41519c07fb77a6fa6532fc3",
+      "repositorySha256": "f02e1c53cc13944119ce39a3e3fe02b9252d73c5c41519c07fb77a6fa6532fc3"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/account.py",
+      "sourceSha256": "e97799069ec41b2711203ca58e381236bc7a69b478e3f315e59a67a71f5fd3f1",
+      "repositorySha256": "e97799069ec41b2711203ca58e381236bc7a69b478e3f315e59a67a71f5fd3f1"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/config.py",
+      "sourceSha256": "ebd4d21ef59ce3f3bad7b38d5041f41c732cfdcaaf2d977e2413cd9472a385cf",
+      "repositorySha256": "ebd4d21ef59ce3f3bad7b38d5041f41c732cfdcaaf2d977e2413cd9472a385cf"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/__init__.py",
+      "sourceSha256": "d2031f055bbbb9ae83607fec051d762d78b307d01a48e38b24834184d39875e8",
+      "repositorySha256": "d2031f055bbbb9ae83607fec051d762d78b307d01a48e38b24834184d39875e8"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/agent_builder/__init__.py",
+      "sourceSha256": "8b2a4ad282b176cb1ffab984699ae3193ff3667a15b7f2346b6833620ecbfcb5",
+      "repositorySha256": "8b2a4ad282b176cb1ffab984699ae3193ff3667a15b7f2346b6833620ecbfcb5"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/agent_builder/router.py",
+      "sourceSha256": "4ddf91b695ce98ce2c21b72af3e47bdd66d88a932136fd3ceb24c85a2bc0cc4b",
+      "repositorySha256": "4ddf91b695ce98ce2c21b72af3e47bdd66d88a932136fd3ceb24c85a2bc0cc4b"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/agents/__init__.py",
+      "sourceSha256": "2dfbbcda5f6a1c5a7fb880701e3ae18336f9e02ea02fcb787e235cccfdfdb1f9",
+      "repositorySha256": "2dfbbcda5f6a1c5a7fb880701e3ae18336f9e02ea02fcb787e235cccfdfdb1f9"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/agents/router.py",
+      "sourceSha256": "cb187f4c7778a9856d2869da25f76b2d28c34af95a9feb9f756729c1a6885317",
+      "repositorySha256": "cb187f4c7778a9856d2869da25f76b2d28c34af95a9feb9f756729c1a6885317"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/auth/__init__.py",
+      "sourceSha256": "09eff1177878cad211c2a97a4fd62eab8229fef331fae05bceb7521ac1cce28f",
+      "repositorySha256": "09eff1177878cad211c2a97a4fd62eab8229fef331fae05bceb7521ac1cce28f"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/auth/router.py",
+      "sourceSha256": "939389bb182c7ce8befe210cc7cf02dd74e775c3247a4a8a01c0c29e4fd9ae61",
+      "repositorySha256": "939389bb182c7ce8befe210cc7cf02dd74e775c3247a4a8a01c0c29e4fd9ae61"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/environments/__init__.py",
+      "sourceSha256": "34c8f55e95a8f612e53a72038773ae3da87e2d41814d3f811d9b1d2e5a9ddb1f",
+      "repositorySha256": "34c8f55e95a8f612e53a72038773ae3da87e2d41814d3f811d9b1d2e5a9ddb1f"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/environments/router.py",
+      "sourceSha256": "79dfaf903960bfdad053e54c52a2f068aa51c063cacd5420acd00a918958aadc",
+      "repositorySha256": "79dfaf903960bfdad053e54c52a2f068aa51c063cacd5420acd00a918958aadc"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/environments/schemas.py",
+      "sourceSha256": "5cb984b04cddb8b3ee75f91a5a2eebc2b28d66dffd337cffa45c88aa5e2c8b5d",
+      "repositorySha256": "5cb984b04cddb8b3ee75f91a5a2eebc2b28d66dffd337cffa45c88aa5e2c8b5d"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/federated_learning/router.py",
+      "sourceSha256": "6e2410d01356357e7d95530bcb0b998d553671a2cf358b680cb3c043a35deaed",
+      "repositorySha256": "6e2410d01356357e7d95530bcb0b998d553671a2cf358b680cb3c043a35deaed"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/registry/__init__.py",
+      "sourceSha256": "47bf0c848ab53707dd1e5c150ad45d0c678656ae1f40ef807d54a2b7c8b7e19f",
+      "repositorySha256": "47bf0c848ab53707dd1e5c150ad45d0c678656ae1f40ef807d54a2b7c8b7e19f"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/registry/router.py",
+      "sourceSha256": "bc8e6cf1c903ba1c37f8f5bc28dae9e86df99f1a54ab249150a9d763321095f7",
+      "repositorySha256": "bc8e6cf1c903ba1c37f8f5bc28dae9e86df99f1a54ab249150a9d763321095f7"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/registry/task_mapper.py",
+      "sourceSha256": "12e64b37ebebcbf32d0311a23d7b843823668495452da2690b876bbecf8f49d5",
+      "repositorySha256": "12e64b37ebebcbf32d0311a23d7b843823668495452da2690b876bbecf8f49d5"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/system/__init__.py",
+      "sourceSha256": "15634d6c0565eb766f44d8e6c3e14d75517d3c696f6c5e464cf929b2fd9f32ef",
+      "repositorySha256": "15634d6c0565eb766f44d8e6c3e14d75517d3c696f6c5e464cf929b2fd9f32ef"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/system/router.py",
+      "sourceSha256": "2a59b6b577bcf9079c0096cfc331a01654ab5b6342c310d2c298ecf38a2b166a",
+      "repositorySha256": "2a59b6b577bcf9079c0096cfc331a01654ab5b6342c310d2c298ecf38a2b166a"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/workspace/__init__.py",
+      "sourceSha256": "d61f7cdf082117d86bce54fcd445627b1ede64dbf28f4d3e0e1b772db4e19602",
+      "repositorySha256": "d61f7cdf082117d86bce54fcd445627b1ede64dbf28f4d3e0e1b772db4e19602"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/workspace/realtime.py",
+      "sourceSha256": "2c0da55ca0fe755309a49b76c1b917c26167aaa54efae32cb6b91411b028383a",
+      "repositorySha256": "2c0da55ca0fe755309a49b76c1b917c26167aaa54efae32cb6b91411b028383a"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/workspace/router.py",
+      "sourceSha256": "5eb041d8ebaece1087dcbc067c7686e2d585391a57e4e7fad3b936ba6d098589",
+      "repositorySha256": "5eb041d8ebaece1087dcbc067c7686e2d585391a57e4e7fad3b936ba6d098589"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/features/workspace/schemas.py",
+      "sourceSha256": "723ecf95c72d7478ff468ed7997498ec30621e42467c926b0f6abfc079101c0d",
+      "repositorySha256": "723ecf95c72d7478ff468ed7997498ec30621e42467c926b0f6abfc079101c0d"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/integrations/__init__.py",
+      "sourceSha256": "b709b09ae1982ec4702a167f9809d2b4eb8accd93ec121995444d622fbd487cd",
+      "repositorySha256": "b709b09ae1982ec4702a167f9809d2b4eb8accd93ec121995444d622fbd487cd"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/integrations/fedops_web.py",
+      "sourceSha256": "0ca34e68af281ee1f64addeb4aa9b4feb9be8bd61cb44d8c56ed13108e30f874",
+      "repositorySha256": "0ca34e68af281ee1f64addeb4aa9b4feb9be8bd61cb44d8c56ed13108e30f874"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/main.py",
+      "sourceSha256": "ae916530b61bf336d6222bafc47df10b5f968fd8247bfead17d3414ebd10a5cd",
+      "repositorySha256": "ae916530b61bf336d6222bafc47df10b5f968fd8247bfead17d3414ebd10a5cd"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/server.py",
+      "sourceSha256": "a8534049ca79154f58157e7d9a7cb92222caa2f600b0f9431db9908505a2c889",
+      "repositorySha256": "a8534049ca79154f58157e7d9a7cb92222caa2f600b0f9431db9908505a2c889"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/session.py",
+      "sourceSha256": "0c0630e2c4f0b9e6cbfdbe330845fdf386cd23525b112e39b40241be0fa2c5ba",
+      "repositorySha256": "0c0630e2c4f0b9e6cbfdbe330845fdf386cd23525b112e39b40241be0fa2c5ba"
+    },
+    {
+      "path": "services/studio-api/src/studio_api/streaming.py",
+      "sourceSha256": "dd56f7881eaef9b5c835fbe100465cab02a87d0906a1fcd2749e88cb65169eec",
+      "repositorySha256": "dd56f7881eaef9b5c835fbe100465cab02a87d0906a1fcd2749e88cb65169eec"
+    },
+    {
+      "path": "services/studio-api/tests/test_account_isolation.py",
+      "sourceSha256": "557307903ba51b9b03e57373f1cdff7a5bf71a5c6e20de8b5638918f402d5664",
+      "repositorySha256": "557307903ba51b9b03e57373f1cdff7a5bf71a5c6e20de8b5638918f402d5664"
+    },
+    {
+      "path": "services/studio-api/tests/test_agents_contract.py",
+      "sourceSha256": "61a9f5d3a284d2aaa28fb31fee3a0d9d9b012b67c6e1271b9fe9f8ebe96a3787",
+      "repositorySha256": "61a9f5d3a284d2aaa28fb31fee3a0d9d9b012b67c6e1271b9fe9f8ebe96a3787"
+    },
+    {
+      "path": "services/studio-api/tests/test_app_composition.py",
+      "sourceSha256": "90941e2727c5b8b451c3e0f1d399042bab384472feea4c6aee3d94f0e331fdd2",
+      "repositorySha256": "90941e2727c5b8b451c3e0f1d399042bab384472feea4c6aee3d94f0e331fdd2"
+    },
+    {
+      "path": "services/studio-api/tests/test_auth_contract.py",
+      "sourceSha256": "1e731cafbcc32c1d0e68a839b47147f8fab99f86dc76a0daf7d93c3c87882b2e",
+      "repositorySha256": "1e731cafbcc32c1d0e68a839b47147f8fab99f86dc76a0daf7d93c3c87882b2e"
+    },
+    {
+      "path": "services/studio-api/tests/test_environments_contract.py",
+      "sourceSha256": "3057c7ea6c317f4856a3510db1b723792328c23d023c20bd928a3d3f472419ef",
+      "repositorySha256": "3057c7ea6c317f4856a3510db1b723792328c23d023c20bd928a3d3f472419ef"
+    },
+    {
+      "path": "services/studio-api/tests/test_federated_learning_contract.py",
+      "sourceSha256": "b15f560beb9acf0d2c5654d4e04702f1b121b847f381c14781fd6fb1f3f13312",
+      "repositorySha256": "b15f560beb9acf0d2c5654d4e04702f1b121b847f381c14781fd6fb1f3f13312"
+    },
+    {
+      "path": "services/studio-api/tests/test_fedops_web_upload.py",
+      "sourceSha256": "65f85646386187c35e1c6bcfe56ee0d17e0eafc8b79bdbafe37f75837031b1b9",
+      "repositorySha256": "65f85646386187c35e1c6bcfe56ee0d17e0eafc8b79bdbafe37f75837031b1b9"
+    },
+    {
+      "path": "services/studio-api/tests/test_registry_contract.py",
+      "sourceSha256": "a1b1a796faf0e4c3c05876fb46bc0b2ac801404dea903563fe8f0c1cfabb523c",
+      "repositorySha256": "a1b1a796faf0e4c3c05876fb46bc0b2ac801404dea903563fe8f0c1cfabb523c"
+    },
+    {
+      "path": "services/studio-api/tests/test_registry_task_mapper.py",
+      "sourceSha256": "e5b4c157b00eb78558ec21d40dc338825c7a834f2d54ad6ee05fef9acd0ad1bc",
+      "repositorySha256": "e5b4c157b00eb78558ec21d40dc338825c7a834f2d54ad6ee05fef9acd0ad1bc"
+    },
+    {
+      "path": "services/studio-api/tests/test_server.py",
+      "sourceSha256": "7b328d166422921744c1cd37649de4a9a1c62ee9660011990e1028c2873c5a83",
+      "repositorySha256": "7b328d166422921744c1cd37649de4a9a1c62ee9660011990e1028c2873c5a83"
+    },
+    {
+      "path": "services/studio-api/tests/test_streaming.py",
+      "sourceSha256": "8e5deb5fd887acf9af9b2e837461e6ee6a879620b4dddd3bf5c90883d2034939",
+      "repositorySha256": "8e5deb5fd887acf9af9b2e837461e6ee6a879620b4dddd3bf5c90883d2034939"
+    },
+    {
+      "path": "services/studio-api/tests/test_system_contract.py",
+      "sourceSha256": "5eadbad0e135d9c36a71e86cae58f19e2145964e7e8104e7cc36a3c66fca5b42",
+      "repositorySha256": "5eadbad0e135d9c36a71e86cae58f19e2145964e7e8104e7cc36a3c66fca5b42"
+    },
+    {
+      "path": "services/studio-api/tests/test_terminal_account_isolation.py",
+      "sourceSha256": "f91707db37c66554b75d19998e87899a7d3c2959dedd37cc007cae6b05c028f1",
+      "repositorySha256": "f91707db37c66554b75d19998e87899a7d3c2959dedd37cc007cae6b05c028f1"
+    },
+    {
+      "path": "services/studio-api/tests/test_validation_upload.py",
+      "sourceSha256": "e648dea6bc1e8bf785090a73472af77e0f292dd1536aa40eeb91dd4830048280",
+      "repositorySha256": "e648dea6bc1e8bf785090a73472af77e0f292dd1536aa40eeb91dd4830048280"
+    },
+    {
+      "path": "services/studio-api/tests/test_workspace_discovery.py",
+      "sourceSha256": "3ca061caa8c92e6b8499508ff41333363f7f202ed9c9670fcb6b26a9044eae2a",
+      "repositorySha256": "3ca061caa8c92e6b8499508ff41333363f7f202ed9c9670fcb6b26a9044eae2a"
+    },
+    {
+      "path": "services/studio-api/tests/test_workspace_files.py",
+      "sourceSha256": "903a7681a8c89e4c0d450260841e1016a9cf07f5f46efdfefbd8b9a1f6ee8d6d",
+      "repositorySha256": "903a7681a8c89e4c0d450260841e1016a9cf07f5f46efdfefbd8b9a1f6ee8d6d"
+    },
+    {
+      "path": "services/studio-api/tests/test_workspace_runs.py",
+      "sourceSha256": "0476c9c00b8e1587bec20f1ee8d7867ee1fc4ba37ada6f00ec6cffa88cbbc958",
+      "repositorySha256": "0476c9c00b8e1587bec20f1ee8d7867ee1fc4ba37ada6f00ec6cffa88cbbc958"
+    },
+    {
+      "path": "services/studio-api/uv.lock",
+      "sourceSha256": "90b37e6f4142b52c9493dca3bfa6d6fc15d0dc4d2906b83bdf3705d01bab4e8e",
+      "repositorySha256": "90b37e6f4142b52c9493dca3bfa6d6fc15d0dc4d2906b83bdf3705d01bab4e8e"
+    },
+    {
+      "path": "services/studio-runtime/pyproject.toml",
+      "sourceSha256": "9a7af32fcc4e2bc99026323d30a78a9090ff99bc6bcaf0ebda9dea7dd8923edf",
+      "repositorySha256": "9a7af32fcc4e2bc99026323d30a78a9090ff99bc6bcaf0ebda9dea7dd8923edf"
+    },
+    {
+      "path": "services/studio-runtime/requirements.txt",
+      "sourceSha256": "1efaf301d327b26f426cd1031b996e00c0af0fbbd2e91414e73960df7dbe7dcd",
+      "repositorySha256": "1efaf301d327b26f426cd1031b996e00c0af0fbbd2e91414e73960df7dbe7dcd"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/__init__.py",
+      "sourceSha256": "a84c899f940e0bd9fc1260db51e6c062de44a41d4fe47edd875226f44388c272",
+      "repositorySha256": "a84c899f940e0bd9fc1260db51e6c062de44a41d4fe47edd875226f44388c272"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/agent_builder.py",
+      "sourceSha256": "f212a7830626e59cc0d286e710a927b3e9f02a2a4cd12ebfc68cc822ee9ed93c",
+      "repositorySha256": "f212a7830626e59cc0d286e710a927b3e9f02a2a4cd12ebfc68cc822ee9ed93c"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/agents.py",
+      "sourceSha256": "7b9cff8394b054d46762a816e5f38d69ce7781b06937e9f2f978c1832636709a",
+      "repositorySha256": "7b9cff8394b054d46762a816e5f38d69ce7781b06937e9f2f978c1832636709a"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/environments.py",
+      "sourceSha256": "4f12414bcde99fb84a66a6f97c20507af729d4cd8e0af92e838892f46d183168",
+      "repositorySha256": "4f12414bcde99fb84a66a6f97c20507af729d4cd8e0af92e838892f46d183168"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/execution.py",
+      "sourceSha256": "2a2a6807e5ac8bf717309c89b9d9533eff88f0579ab3472a6ae28880ca1dd8a1",
+      "repositorySha256": "2a2a6807e5ac8bf717309c89b9d9533eff88f0579ab3472a6ae28880ca1dd8a1"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/federated_learning.py",
+      "sourceSha256": "32e9a4b111433454d0e95a830aba243cec953a3a684fbf0a79213406b5fe680a",
+      "repositorySha256": "32e9a4b111433454d0e95a830aba243cec953a3a684fbf0a79213406b5fe680a"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/federated_task.py",
+      "sourceSha256": "875e2bed6c313dabd9fa525a782b2d99b08e5c1a60165df317aa205ba9508e1f",
+      "repositorySha256": "875e2bed6c313dabd9fa525a782b2d99b08e5c1a60165df317aa205ba9508e1f"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/folder.py",
+      "sourceSha256": "3413ebbd0c690f335435ed175dad2b311a94747a3020cb441a6b500b90131dbf",
+      "repositorySha256": "3413ebbd0c690f335435ed175dad2b311a94747a3020cb441a6b500b90131dbf"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/folder_bridge.py",
+      "sourceSha256": "dcd03eeca2ed04517199d37004e09586a05bde6b3df1d394e97191dbb15e781e",
+      "repositorySha256": "dcd03eeca2ed04517199d37004e09586a05bde6b3df1d394e97191dbb15e781e"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/hardware.py",
+      "sourceSha256": "a0634552469a6bb683dfad60806f5ae0b45a7ede76934b408b4f3f7336246e20",
+      "repositorySha256": "a0634552469a6bb683dfad60806f5ae0b45a7ede76934b408b4f3f7336246e20"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/jobs.py",
+      "sourceSha256": "60eda245280ff27b2a506e53c15b638933197b81ecee55c07d12a0e2c5cac344",
+      "repositorySha256": "60eda245280ff27b2a506e53c15b638933197b81ecee55c07d12a0e2c5cac344"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/legacy_workspace.py",
+      "sourceSha256": "d4f3e9ba4084e51b66b1d9bdb02f48e836149e045740080b687ddebb6190b80c",
+      "repositorySha256": "d4f3e9ba4084e51b66b1d9bdb02f48e836149e045740080b687ddebb6190b80c"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/model_runner.py",
+      "sourceSha256": "6e33c1686fc8e214a0b85af40c1a3f5608e7ac26fd7e7b168deb247eeffc7528",
+      "repositorySha256": "6e33c1686fc8e214a0b85af40c1a3f5608e7ac26fd7e7b168deb247eeffc7528"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/task_data.py",
+      "sourceSha256": "568d4677ab1c981125bd3caa981d029eb5c0e1e649dc55dd1f6b7dde5f54bfcc",
+      "repositorySha256": "568d4677ab1c981125bd3caa981d029eb5c0e1e649dc55dd1f6b7dde5f54bfcc"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/terminal.py",
+      "sourceSha256": "881b997ecdf77f26b26bf78df8d894de19644ce42297e83da8d2ee1dea913bd4",
+      "repositorySha256": "881b997ecdf77f26b26bf78df8d894de19644ce42297e83da8d2ee1dea913bd4"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/validation_data.py",
+      "sourceSha256": "a166bc39902b1407bc014b6353549b1ffd1da82c3734d0aafbf42c99decfe406",
+      "repositorySha256": "a166bc39902b1407bc014b6353549b1ffd1da82c3734d0aafbf42c99decfe406"
+    },
+    {
+      "path": "services/studio-runtime/src/studio_runtime/workspace.py",
+      "sourceSha256": "703cecb644b9acffc6aedc6188a33a900ecd1efac8810523820ba50b82b6ec14",
+      "repositorySha256": "703cecb644b9acffc6aedc6188a33a900ecd1efac8810523820ba50b82b6ec14"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_account_workspace.py",
+      "sourceSha256": "f13ecb164a6f8bba4e97d2a359dd3842e0ed5e034a53992e9bab593cf6a06602",
+      "repositorySha256": "f13ecb164a6f8bba4e97d2a359dd3842e0ed5e034a53992e9bab593cf6a06602"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_agent_builder.py",
+      "sourceSha256": "4fdfc3deab44869675d097b8ddbaa36e8163fb6aa96897a0a8e8cc73f1a5b3cc",
+      "repositorySha256": "4fdfc3deab44869675d097b8ddbaa36e8163fb6aa96897a0a8e8cc73f1a5b3cc"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_environments.py",
+      "sourceSha256": "fde5dc07f0510ee3b1c6ef1d08d2514f6e9173c8c6f6e1f0f61b5076c176aaec",
+      "repositorySha256": "fde5dc07f0510ee3b1c6ef1d08d2514f6e9173c8c6f6e1f0f61b5076c176aaec"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_federated_learning.py",
+      "sourceSha256": "5935cced5ce959e74a3be984e3717f94e88e69d813d02c4f9ee70a0a81b595bf",
+      "repositorySha256": "5935cced5ce959e74a3be984e3717f94e88e69d813d02c4f9ee70a0a81b595bf"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_federated_task.py",
+      "sourceSha256": "cc4f718eb56030ccf5c02a4aea071ffdc6e726d32ac7216cc3b7fa50302d4535",
+      "repositorySha256": "cc4f718eb56030ccf5c02a4aea071ffdc6e726d32ac7216cc3b7fa50302d4535"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_folder.py",
+      "sourceSha256": "182328a88beb41510b53fa6d693b50734f7be25a2b86b4fd6c3051de1e8edbd0",
+      "repositorySha256": "182328a88beb41510b53fa6d693b50734f7be25a2b86b4fd6c3051de1e8edbd0"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_hardware.py",
+      "sourceSha256": "50deff72b5030b8a12b8d539937dea02432408bb512ff6b4b3773aecf2081d90",
+      "repositorySha256": "50deff72b5030b8a12b8d539937dea02432408bb512ff6b4b3773aecf2081d90"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_model_runner.py",
+      "sourceSha256": "6e51334047d37df7b124bef12386d39950de9ef33adb9eae823d71675c855707",
+      "repositorySha256": "6e51334047d37df7b124bef12386d39950de9ef33adb9eae823d71675c855707"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_task_data.py",
+      "sourceSha256": "69141697c7612f779d06ced740aa7999b121bfae26fc58ea443747fa09dba059",
+      "repositorySha256": "69141697c7612f779d06ced740aa7999b121bfae26fc58ea443747fa09dba059"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_terminal.py",
+      "sourceSha256": "722df931a38dabbbcafe44eac8af1de0c1226b0873bf836e21093befcd0d5f73",
+      "repositorySha256": "722df931a38dabbbcafe44eac8af1de0c1226b0873bf836e21093befcd0d5f73"
+    },
+    {
+      "path": "services/studio-runtime/tests/test_validation_data.py",
+      "sourceSha256": "f2bac278dd45d0d0f2aa7178b47776c5bf576cd8a11a9e950c2376f4fc4f1967",
+      "repositorySha256": "f2bac278dd45d0d0f2aa7178b47776c5bf576cd8a11a9e950c2376f4fc4f1967"
+    },
+    {
+      "path": "services/studio-runtime/uv.lock",
+      "sourceSha256": "0e7099703df83f4859c50233d780f19d7f25cded72b689670674fddd9443368b",
+      "repositorySha256": "0e7099703df83f4859c50233d780f19d7f25cded72b689670674fddd9443368b"
+    },
+    {
+      "path": ".env.example",
+      "sourceSha256": "3b1b9a3ad9b16b72f5de4c801b774a7eacf9f40564b7f7b0bf058c7d8e2e454a",
+      "repositorySha256": "3b1b9a3ad9b16b72f5de4c801b774a7eacf9f40564b7f7b0bf058c7d8e2e454a"
+    }
+  ],
+  "omitted": [
+    {
+      "path": ".github/workflows/docker-publish.yml",
+      "reason": "Upstream automatic publication workflow; not enabled in the new repository"
+    }
+  ]
+}

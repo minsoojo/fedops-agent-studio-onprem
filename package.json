@@ -1,0 +1,17 @@
+{
+  "name": "fedops-agent-studio",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @fedops/studio-web",
+    "typecheck": "npm run typecheck --workspace @fedops/studio-web",
+    "build": "npm run build --workspace @fedops/studio-web",
+    "format": "npm run format --workspace @fedops/studio-web"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}
